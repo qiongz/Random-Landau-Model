@@ -4,7 +4,7 @@ void *peer_solve_projected( void* peer_solve_params){
     int wfs_index, en_index, kx, ky;
     int idx_m,idx_kx,idx_jk,delta_jk;
     int n_phi,dim_n,dim_m,off_head;
-    complex<float> coeff_theta_jm,sum;
+    complex<dtype> coeff_theta_jm,sum;
     peer_solve_paramsT *params = (peer_solve_paramsT*) peer_solve_params;
     n_phi=params->n_phi;
     dim_n=params->dim_n;

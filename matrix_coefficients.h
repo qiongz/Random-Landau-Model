@@ -1,8 +1,13 @@
 #include<complex>
 #include<cmath>
+#if defined DP
+#define dtype double
+#else
+#define dtype float
+#endif
 #define PI2 (M_PI*2.0)
 using namespace std;
-void prepare_coeff(complex<float> *coeff_mn, complex<float> *coeff_m_theta, complex<float> *coeff_jm, 
-		int n_phi, int off_head, int dim_m, int dim_n, int n_mesh, float L1, float L2);
-void get_potential_coeff(float* impurity_x, float * impurity_y, float *impurity_intensity, complex<float> * Vmn, 
-		complex<float>* coeff_mn, int dim_m, int dim_n, int off_head,int impurity_num);
+void prepare_coeff(complex<dtype> *coeff_mn, complex<dtype> *coeff_m_theta, complex<dtype> *coeff_jm, 
+		int n_phi, int off_head, int dim_m, int dim_n, int n_mesh, dtype L1, dtype L2);
+void get_potential_coeff(dtype* impurity_x, dtype * impurity_y, dtype *impurity_intensity, complex<dtype> * Vmn, 
+		complex<dtype>* coeff_mn, int dim_m, int dim_n, int off_head,int impurity_num);

@@ -1,11 +1,11 @@
 #include"chern.h"
 #include"wfs_file.h"
-void cal_Chern( complex<float>* wfs_full,float* chern_numbers_theta,int n_phi, int n_mesh, int theta_1) {
+void cal_Chern( complex<dtype>* wfs_full,dtype* chern_numbers_theta,int n_phi, int n_mesh, int theta_1) {
     int lki, rki, lkj, rkj, n, m, l;
     unsigned long dim_wfs=n_phi*n_phi;
     int inca, incb;
     inca = incb = 1;
-    vector< complex<float> > prod;
+    vector< complex<dtype> > prod;
     int dki[4], dkj[4];
     dki[0] = -(dki[2] = (theta_1 % 2 == 0 ? 1 : -1));
     dki[1] = dki[3] = dkj[0] = dkj[2] = 0;
@@ -13,13 +13,13 @@ void cal_Chern( complex<float>* wfs_full,float* chern_numbers_theta,int n_phi, i
     for(m = 0 ; m < n_mesh; m++) {
         lki = 1 - theta_1 % 2;
         lkj = m;
-        complex<float> sum=0;
-        prod.assign(n_phi,complex<float>(1,0));
+        complex<dtype> sum=0;
+        prod.assign(n_phi,complex<dtype>(1,0));
         for(l = 0; l < 4; l++) {
             rki = lki + dki[l];
             rkj = lkj + dkj[l];
             for(n=0; n<n_phi; n++) {
-                cdotc(&sum, &n_phi, wfs_full + (lki * (n_mesh+1) + lkj)*dim_wfs + n*n_phi, &inca, wfs_full + (rki * (n_mesh+1) + rkj)*dim_wfs + n*n_phi, &incb );
+                DOT(&sum, &n_phi, wfs_full + (lki * (n_mesh+1) + lkj)*dim_wfs + n*n_phi, &inca, wfs_full + (rki * (n_mesh+1) + rkj)*dim_wfs + n*n_phi, &incb );
                 prod[n] *= sum;
             }
             lki = rki;
@@ -39,8 +39,8 @@ void *peer_cal_Chern( void *peer_Chern_params) {
     unsigned long dim_wfs=params->n_phi*params->n_phi;
     int inca, incb;
     inca = incb = 1;
-    complex<float> sum;
-    vector< complex<float> > prod;
+    complex<dtype> sum;
+    vector< complex<dtype> > prod;
     int dki[4], dkj[4];
     dki[0] = -(dki[2] = (params->theta_1 % 2 == 0 ? 1 : -1));
     dki[1] = dki[3] = dkj[0] = dkj[2] = 0;
@@ -57,7 +57,7 @@ void *peer_cal_Chern( void *peer_Chern_params) {
    	    for(n=0;n<params->n_phi;n++){
                wfs_offset_l=(lki*n_mesh_pbc+lkj)*dim_wfs+params->n_phi*n;
                wfs_offset_r=(rki*n_mesh_pbc+rkj)*dim_wfs+params->n_phi*n;
-               cdotc(&sum, &(params->n_phi), params->wave_function + wfs_offset_l, &inca, params->wave_function+wfs_offset_r, &incb );
+               DOT(&sum, &(params->n_phi), params->wave_function + wfs_offset_l, &inca, params->wave_function+wfs_offset_r, &incb );
                prod[n] *= sum;
   	     }
             lki = rki;
@@ -70,14 +70,14 @@ void *peer_cal_Chern( void *peer_Chern_params) {
     pthread_exit((void*) 0);
 }
 
-void cal_Chern_wfs_IO(float* chern_numbers_theta, int n_phi,int n_mesh, int theta_1) {
+void cal_Chern_wfs_IO(dtype* chern_numbers_theta, int n_phi,int n_mesh, int theta_1) {
     int lki, rki, lkj, rkj, n, m, l;
     int inca, incb;
     inca = incb = 1;
     long dim_wfs=n_phi*n_phi;
-    complex<float>* wfs=new complex<float>[4*dim_wfs];
-    vector< complex<float> > prod;
-    complex<float> sum;
+    complex<dtype>* wfs=new complex<dtype>[4*dim_wfs];
+    vector< complex<dtype> > prod;
+    complex<dtype> sum;
     int dki[4], dkj[4];
     dki[0] = -(dki[2] = (theta_1 % 2 == 0 ? 1 : -1));
     dki[1] = dki[3] = dkj[0] = dkj[2] = 0;
@@ -107,7 +107,7 @@ void cal_Chern_wfs_IO(float* chern_numbers_theta, int n_phi,int n_mesh, int thet
         prod.assign(n_phi,1);
         for(l = 0; l < 4; l++) {
             for(n=0; n<n_phi; n++) {
-                cdotc(&sum, &n_phi, wfs+((l+1)%4)*dim_wfs + n*n_phi, &inca, wfs+l*dim_wfs + n*n_phi, &incb );
+                DOT(&sum, &n_phi, wfs+((l+1)%4)*dim_wfs + n*n_phi, &inca, wfs+l*dim_wfs + n*n_phi, &incb );
                 prod[n] *= sum;
             }
         }

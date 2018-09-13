@@ -14,7 +14,7 @@ void usage(char* target) {
     cout << "  -t  # of threads\n";
 }
 
-int init(int argc, char* argv[], long &n_phi, float &quanta_concentration, float &impurity_concentration, long &n_mesh,
+int init(int argc, char* argv[], long &n_phi, dtype &quanta_concentration, dtype &impurity_concentration, long &n_mesh,
     long &n_sample,unsigned long &seed, long & num_threads) {
     // default values
     n_phi = 32;

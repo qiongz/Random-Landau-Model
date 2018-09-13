@@ -54,7 +54,7 @@ default:
 
 all:cpu gpu clean
 
-cpu:rlm_cpu clean
+cpu:rlm_cpu rlm_cpu_dp clean
 
 gpu:rlm_gpu_cusolver rlm_gpu_magma rlm_gpu_mkl rlm_gpu_magma_wfs clean
 
@@ -165,3 +165,34 @@ main_cpu.o:main_cpu.cpp
 
 rlm_cpu:main_cpu.o hamiltonian_cpu.o init_icc.o disorder_potential_icc.o chern_icc.o matrix_coefficients_icc.o mkl_diag_icc.o wfs_file_icc.o
 	$(ICC) $(ICC_LDFLAGS) $^ $(SEQ_MKL_LIBS) -O3 -o $@ 
+
+
+
+# ------ compile cpu double precision version ------
+
+init_icc_dp.o:init.cpp init.h
+	$(ICC) -DDP $(CFLAGS) -c -o $@ $<
+	
+wfs_file_icc_dp.o:wfs_file.cpp wfs_file.h
+	$(ICC) -DDP $(CFLAGS) -c -o $@ $<
+
+matrix_coefficients_icc_dp.o:matrix_coefficients.cpp matrix_coefficients.h
+	$(ICC) -DDP $(CFLAGS) -c -o $@ $<
+
+disorder_potential_icc_dp.o:disorder_potential.cpp disorder_potential.h
+	$(ICC) -DDP $(CFLAGS) $(MKL_CFLAGS) -c -o $@ $<
+
+hamiltonian_cpu_dp.o:hamiltonian_cpu.cpp hamiltonian_cpu.h
+	$(ICC) -DDP $(MKL_CFLAGS) -c -o $@ $<
+
+chern_icc_dp.o:chern.cpp chern.h
+	$(ICC) -DDP $(CFLAGS) $(MKL_CFLAGS) -c -o $@ $<
+
+mkl_diag_icc_dp.o:mkl_diag.cpp mkl_diag.h
+	$(ICC) -DDP $(CFLAGS) $(MKL_CFLAGS) -c -o $@ $<
+
+main_cpu_dp.o:main_cpu.cpp 
+	$(ICC) -DDP $(CFLAGS) $(MKL_CFLAGS) -c -o $@ $< 
+
+rlm_cpu_dp:main_cpu_dp.o hamiltonian_cpu_dp.o init_icc_dp.o disorder_potential_icc_dp.o chern_icc_dp.o matrix_coefficients_icc_dp.o mkl_diag_icc_dp.o wfs_file_icc_dp.o
+	$(ICC) -DDP $(ICC_LDFLAGS) $^ $(SEQ_MKL_LIBS) -O3 -o $@ 

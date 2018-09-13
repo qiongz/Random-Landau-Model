@@ -12,13 +12,19 @@
 #include"mkl_diag.h"
 #include"init.h"
 #include<pthread.h>
+#if defined DP
+#define dtype double
+#else
+#define dtype float
+#endif
+
 using namespace std;
 
 int main(int argc, char *argv[]) {
     /************************************  PARAMETERS INITIALIZATION  *******************************************/
     long n_phi,n_mesh,num_threads,n_sample,impurity_num,off_head, dim_m,dim_n;
     unsigned long seed,dim_wfs;
-    float quanta_concentration,impurity_concentration,L1,L2;
+    dtype quanta_concentration,impurity_concentration,L1,L2;
     init(argc,argv,n_phi,quanta_concentration,impurity_concentration,n_mesh,n_sample,seed,num_threads);
     L1=sqrt(n_phi*quanta_concentration);
     L2=sqrt(n_phi*quanta_concentration);
@@ -29,41 +35,41 @@ int main(int argc, char *argv[]) {
 
     /*************************************  MEMORY ALLOCATION    ******************************************/
     // Coefficients for calculating hamiltonian--> disorder independent coefficients
-    complex<float> *coeff_mn, *coeff_m_theta, *coeff_jm;
+    complex<dtype> *coeff_mn, *coeff_m_theta, *coeff_jm;
 
     // disorder dependent coefficients
     // impurity positions
-    float *impurity_x, *impurity_y;
+    dtype *impurity_x, *impurity_y;
     // impurity intensities
-    float *impurity_intensity;
+    dtype *impurity_intensity;
     unsigned int *i_buffer;
-    complex<float> *v_mn;
+    complex<dtype> *v_mn;
     // wave functions for all theta_1, theta_2
-    complex<float> *wave_functions;
+    complex<dtype> *wave_functions;
     // theta_1, theta_2 averaged eigenvalues
-    float *energy_theta;
-    float *energy_levels;
-    float *chern_numbers;
-    float *chern_numbers_theta;
+    dtype *energy_theta;
+    dtype *energy_levels;
+    dtype *chern_numbers;
+    dtype *chern_numbers_theta;
     // paramsters for peer_solve
     int **thds_theta, **thds_ctheta;
     int *ctheta_len,*theta_len;
     unsigned long wfs_size=(n_mesh+1)*2*n_phi*n_phi;
 
     // allocate memory space
-    coeff_mn = new complex<float> [dim_m * dim_n];
-    coeff_m_theta = new complex<float> [(n_mesh + 1)  * dim_m];
-    coeff_jm = new complex<float> [n_phi * dim_m];
-    impurity_x = new float[impurity_num];
-    impurity_y = new float[impurity_num];
-    impurity_intensity = new float[impurity_num];
+    coeff_mn = new complex<dtype> [dim_m * dim_n];
+    coeff_m_theta = new complex<dtype> [(n_mesh + 1)  * dim_m];
+    coeff_jm = new complex<dtype> [n_phi * dim_m];
+    impurity_x = new dtype[impurity_num];
+    impurity_y = new dtype[impurity_num];
+    impurity_intensity = new dtype[impurity_num];
     i_buffer = new unsigned int[impurity_num];
-    v_mn = new complex<float>[dim_m * dim_n];
-    wave_functions = new complex<float>[wfs_size];
-    energy_theta = new float[(n_mesh + 1) * n_phi];
-    energy_levels = new float[n_phi];
-    chern_numbers = new float[n_phi];
-    chern_numbers_theta = new float[n_mesh *n_phi];
+    v_mn = new complex<dtype>[dim_m * dim_n];
+    wave_functions = new complex<dtype>[wfs_size];
+    energy_theta = new dtype[(n_mesh + 1) * n_phi];
+    energy_levels = new dtype[n_phi];
+    chern_numbers = new dtype[n_phi];
+    chern_numbers_theta = new dtype[n_mesh *n_phi];
 
     // theta threads allocate
     thds_theta = new int*[num_threads];
@@ -98,8 +104,8 @@ int main(int argc, char *argv[]) {
 
     /*********************************** MAIN PROGRAM ************************************************************/
     for(int n = 0; n < n_sample; n++) {
-        memset(energy_levels, 0, n_phi*sizeof(float));
-        memset(chern_numbers, 0, n_phi*sizeof(float));
+        memset(energy_levels, 0, n_phi*sizeof(dtype));
+        memset(chern_numbers, 0, n_phi*sizeof(dtype));
         _t1=std::chrono::high_resolution_clock::now();
 	// initialize the disorder potential
         generate_disorder_potential(impurity_x,impurity_y,impurity_intensity,impurity_num,L1,L2,seed,n);
