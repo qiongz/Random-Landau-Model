@@ -23,7 +23,12 @@ int init(int argc, char* argv[], long &n_phi, dtype &quanta_concentration, dtype
     quanta_concentration = 1;
     impurity_concentration = 16;
     num_threads=1;
+    #if __cplusplus > 199711L
     seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+    #else
+    Timer tmr;
+    seed=tmr.nanoseconds();
+    #endif
 
     /* Parameters initialization */
     void usage(char *);
