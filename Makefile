@@ -195,4 +195,4 @@ main_cpu_dp.o:main_cpu.cpp
 	$(ICC) -DDP $(CFLAGS) $(MKL_CFLAGS) -c -o $@ $< 
 
 rlm_cpu_dp:main_cpu_dp.o hamiltonian_cpu_dp.o init_icc_dp.o disorder_potential_icc_dp.o chern_icc_dp.o matrix_coefficients_icc_dp.o mkl_diag_icc_dp.o wfs_file_icc_dp.o
-	$(ICC) -DDP $(ICC_LDFLAGS) $^ $(SEQ_MKL_LIBS) -O3 -o $@ 
+	$(ICC) -DDP $(ICC_LDFLAGS) $^ $(PARAL_MKL_LIBS) -O3 -o $@ 

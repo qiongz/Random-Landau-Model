@@ -25,4 +25,7 @@ typedef struct {
     complex<dtype> *coeff_m_theta;
 } peer_solve_paramsT;
 
+// multi-threaded version
 void *peer_solve_projected( void* peer_solve_params);
+void solve_projected(int theta_1, int n_mesh,int n_phi, int dim_m, int dim_n,int off_head, 
+complex<dtype> *wave_function,complex<dtype> *coeff_m_theta, complex<dtype> *coeff_jm,complex<dtype> *v_mn, dtype *energy);

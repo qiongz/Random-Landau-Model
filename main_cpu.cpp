@@ -118,6 +118,7 @@ int main(int argc, char *argv[]) {
         _t1=std::chrono::high_resolution_clock::now();
         // solve the (theta_1=0)-line of wave functions
         int theta_1=0;
+	// multi-threaded version
         for(int id = 0; id < num_threads; id++) {
             peer_solve_paramsT * params;
             params = (peer_solve_paramsT *) malloc(sizeof(peer_solve_paramsT));
@@ -139,6 +140,11 @@ int main(int argc, char *argv[]) {
         // join all the threads
         for(int id = 0; id < num_threads; id++)
             pthread_join(peer_thds[id], NULL);
+	
+	
+
+	//solve_projected(theta_1,n_mesh,n_phi,dim_m,dim_n,off_head,wave_functions,coeff_m_theta,coeff_jm,v_mn,energy_theta);
+
         _t2=std::chrono::high_resolution_clock::now();
               
         diag_time=std::chrono::duration_cast<chrono::microseconds>(_t2-_t1).count()/1.0E6;
@@ -155,6 +161,7 @@ int main(int argc, char *argv[]) {
         // solve theta_1-line of wfs from 1 to n_mesh, chern number calculations are also performed
         for(int theta_1=1;theta_1<=n_mesh;theta_1++){
          // solve for another line
+	
         for(int id = 0; id < num_threads; id++) {
             peer_solve_paramsT * params;
             params = (peer_solve_paramsT *) malloc(sizeof(peer_solve_paramsT));
@@ -176,6 +183,9 @@ int main(int argc, char *argv[]) {
         // join all the threads
         for(int id = 0; id < num_threads; id++)
             pthread_join(peer_thds[id], NULL);
+	
+	//solve_projected(theta_1,n_mesh,n_phi,dim_m,dim_n,off_head,wave_functions,coeff_m_theta,coeff_jm,v_mn,energy_theta);
+
         // energy will be divided by (n_mesh+1)*(n_mesh+1) finally
         for(int i=0; i<n_phi;i++){
            for(int j=0; j<=n_mesh;j++)
@@ -184,7 +194,7 @@ int main(int argc, char *argv[]) {
         
 
         _t1=std::chrono::high_resolution_clock::now();
-        /*
+       
         for(int id = 0; id < num_threads; id++) {
             peer_Chern_paramsT *params;
             params = (peer_Chern_paramsT *) malloc(sizeof(peer_Chern_paramsT));
@@ -200,8 +210,8 @@ int main(int argc, char *argv[]) {
         // join all the threads
         for(int id = 0; id < num_threads; id++)
             pthread_join(peer_thds[id], NULL);
-        */
-        cal_Chern(wave_functions, chern_numbers_theta,n_phi,n_mesh,theta_1);
+        
+        //cal_Chern(wave_functions, chern_numbers_theta,n_phi,n_mesh,theta_1);
         _t2=std::chrono::high_resolution_clock::now();
         chern_time=std::chrono::duration_cast<chrono::microseconds>(_t2-_t1).count()/1.0E6;
 
