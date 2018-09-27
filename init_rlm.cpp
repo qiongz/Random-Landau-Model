@@ -1,4 +1,4 @@
-#include"init.h"
+#include"init_rlm.h"
 using namespace std;
 
 void usage(char* target) {

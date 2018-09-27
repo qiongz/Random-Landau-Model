@@ -6,11 +6,11 @@
 #include<cstring>
 #include"chern.h"
 #include"wfs_file.h"
-#include"hamiltonian_cpu.h"
+#include"hamiltonian_rlm_cpu.h"
 #include"disorder_potential.h"
 #include"matrix_coefficients.h"
 #include"mkl_diag.h"
-#include"init.h"
+#include"init_rlm.h"
 #include<pthread.h>
 #if defined DP
 #define dtype double
@@ -92,7 +92,7 @@ int main(int argc, char *argv[]) {
 
     // initialize output data file
     ofstream fchern;
-    fchern.open("chern_cpu.dat");
+    fchern.open("chern_rlm_cpu.dat");
 
     double coeff_time,pot_time,diag_time,chern_time,total_time;
     auto _t1=std::chrono::high_resolution_clock::now();
@@ -141,8 +141,6 @@ int main(int argc, char *argv[]) {
         for(int id = 0; id < num_threads; id++)
             pthread_join(peer_thds[id], NULL);
 	
-	
-
 	//solve_projected(theta_1,n_mesh,n_phi,dim_m,dim_n,off_head,wave_functions,coeff_m_theta,coeff_jm,v_mn,energy_theta);
 
         _t2=std::chrono::high_resolution_clock::now();
@@ -198,9 +196,10 @@ int main(int argc, char *argv[]) {
         for(int id = 0; id < num_threads; id++) {
             peer_Chern_paramsT *params;
             params = (peer_Chern_paramsT *) malloc(sizeof(peer_Chern_paramsT));
-	    params-> theta_1 = theta_1;
 	    params-> n_phi = n_phi;
+	    params-> dim_vec = n_phi;
 	    params-> n_mesh = n_mesh;
+	    params-> theta_1 = theta_1;
             params-> theta_2 = thds_ctheta[id];
             params-> theta_len = ctheta_len[id];
             params-> wave_function = wave_functions;
@@ -211,7 +210,7 @@ int main(int argc, char *argv[]) {
         for(int id = 0; id < num_threads; id++)
             pthread_join(peer_thds[id], NULL);
         
-        //cal_Chern(wave_functions, chern_numbers_theta,n_phi,n_mesh,theta_1);
+        //cal_Chern(wave_functions, chern_numbers_theta,n_phi,n_phi,n_mesh,theta_1);
         _t2=std::chrono::high_resolution_clock::now();
         chern_time=std::chrono::duration_cast<chrono::microseconds>(_t2-_t1).count()/1.0E6;
 

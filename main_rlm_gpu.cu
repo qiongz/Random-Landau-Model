@@ -4,11 +4,11 @@
 #include<complex>
 #include<cuda.h>
 #include<cuda_runtime.h>
-#include"init.h"
+#include"init_rlm.h"
 #include"matrix_coefficients.h"
 #include"disorder_potential.h"
 #include"potential_coeff.h"
-#include"hamiltonian_gpu.h"
+#include"hamiltonian_rlm_gpu.h"
 #include"wfs_file.h"
 #include"chern.h"
 // macros for using different
@@ -177,7 +177,7 @@ int main(int argc, char *argv[]) {
             cudaMemcpy(wfs_full+wfs_index, dev_wfs, sizeof(*(dev_wfs))*dim_wfs, cudaMemcpyDeviceToHost);
             #elif defined mkl
             cudaMemcpy(wfs_full+wfs_index, dev_wfs, sizeof(*(dev_wfs))*dim_wfs, cudaMemcpyDeviceToHost);
-            mkl_cheevd(wfs_full+wfs_index,energy_theta+en_index,n_phi);
+            mkl_heevd(wfs_full+wfs_index,energy_theta+en_index,n_phi);
             #elif defined cusolver
             cusolver_diag_hamil((cuFloatComplex*)dev_wfs,dev_energy,n_phi);
             cudaMemcpy(wfs_full+wfs_index, dev_wfs, sizeof(*(dev_wfs))*dim_wfs, cudaMemcpyDeviceToHost);
@@ -217,7 +217,7 @@ int main(int argc, char *argv[]) {
                 cudaMemcpy(wfs_full+wfs_index, dev_wfs, sizeof(*(dev_wfs))*dim_wfs, cudaMemcpyDeviceToHost);
                 #elif defined mkl
                 cudaMemcpy(wfs_full+wfs_index, dev_wfs, sizeof(*(dev_wfs))*dim_wfs, cudaMemcpyDeviceToHost);
-                mkl_cheevd(wfs_full+wfs_index,energy_theta+en_index,n_phi);
+                mkl_heevd(wfs_full+wfs_index,energy_theta+en_index,n_phi);
                 #elif defined cusolver
                 cusolver_diag_hamil((cuFloatComplex*)dev_wfs,dev_energy,n_phi);
                 cudaMemcpy(wfs_full+wfs_index, dev_wfs, sizeof(*(dev_wfs))*dim_wfs, cudaMemcpyDeviceToHost);
@@ -241,15 +241,16 @@ int main(int argc, char *argv[]) {
               cudaEventRecord(start,0);
 	    }
             #if defined wfsIO
-            cal_Chern_wfs_IO(chern_numbers_theta,n_phi, n_mesh, theta_1);
+            cal_Chern_wfs_IO(chern_numbers_theta,n_phi,n_phi, n_mesh, theta_1);
             #else
             // calculate Chern numbers for two lines
             for(int id = 0; id < num_threads; id++) {
                 peer_Chern_paramsT *params;
                 params = (peer_Chern_paramsT *) malloc(sizeof(peer_Chern_paramsT));
-                params-> theta_1 = theta_1;
                 params-> n_phi = n_phi;
+                params-> dim_vec = n_phi;
                 params-> n_mesh = n_mesh;
+                params-> theta_1 = theta_1;
                 params-> theta_2 = thds_ctheta[id];
                 params-> theta_len = ctheta_len[id];
                 params-> wave_function = wfs_full;
@@ -278,7 +279,7 @@ int main(int argc, char *argv[]) {
 	      cerr<<setw(40)<<"Chern No. calculation"<<chern_time*n_mesh*n_sample/total_time*100.0<<endl;
 	    }
             //serial version
-            //cal_Chern(wfs_full,chern_numbers_theta,n_phi, n_mesh, theta_1);
+            //cal_Chern(wfs_full,chern_numbers_theta,n_phi,n_phi, n_mesh, theta_1);
             // collect the chern number contributions from the theta_1 line
             for(int k=0; k<n_phi; k++) {
                 for(int i=0; i<n_mesh; i++)

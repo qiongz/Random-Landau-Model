@@ -10,4 +10,4 @@
 #define HEEVD LAPACKE_cheevd
 #endif
 using namespace std;
-void mkl_cheevd(complex<dtype> *hamiltonian, dtype * energy, int l);
+void mkl_heevd(complex<dtype> *hamiltonian, dtype * energy, int l);

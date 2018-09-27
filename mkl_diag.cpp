@@ -1,5 +1,5 @@
 #include"mkl_diag.h"
-void mkl_cheevd(complex<dtype> *hamiltonian, dtype * energy, int l) {
+void mkl_heevd(complex<dtype> *hamiltonian, dtype * energy, int l) {
     int  lda;
     char jobz, uplo;
     jobz = 'V';

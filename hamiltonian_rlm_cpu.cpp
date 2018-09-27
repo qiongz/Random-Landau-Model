@@ -1,4 +1,4 @@
-#include"hamiltonian_cpu.h"
+#include"hamiltonian_rlm_cpu.h"
 void *peer_solve_projected( void* peer_solve_params){
     int m, n, j, k, l ;
     int wfs_index, en_index, kx, ky;
@@ -46,7 +46,7 @@ void *peer_solve_projected( void* peer_solve_params){
                 }
                 params->wave_function[wfs_index + k * n_phi + j] = conj(params->wave_function[wfs_index + j * n_phi + k]);
             }
-        mkl_cheevd(params->wave_function + wfs_index, params->energy + en_index, n_phi);
+        mkl_heevd(params->wave_function + wfs_index, params->energy + en_index, n_phi);
     }
     free(peer_solve_params);
     pthread_exit((void*) 0);
@@ -93,6 +93,6 @@ complex<dtype> *wave_function,complex<dtype> *coeff_m_theta, complex<dtype> *coe
                 }
                 wave_function[wfs_index + k * n_phi + j] = conj(wave_function[wfs_index + j * n_phi + k]);
             }
-        mkl_cheevd(wave_function + wfs_index, energy + en_index, n_phi);
+        mkl_heevd(wave_function + wfs_index, energy + en_index, n_phi);
     }
 }

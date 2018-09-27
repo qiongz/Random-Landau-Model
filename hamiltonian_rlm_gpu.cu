@@ -1,4 +1,4 @@
-#include"hamiltonian_gpu.h"
+#include"hamiltonian_rlm_gpu.h"
 __device__ __host__ cuFloatComplex  operator*(cuFloatComplex a,cuFloatComplex b) {
     return cuCmulf(a,b);
 }
