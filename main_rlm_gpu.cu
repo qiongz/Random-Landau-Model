@@ -126,7 +126,7 @@ int main(int argc, char *argv[]) {
     cudaMemcpy(dev_coeff_mn,coeff_mn,sizeof(*coeff_mn)*dim_n*dim_m,cudaMemcpyHostToDevice);
     // initialize data_file output
     ofstream fchern;
-    fchern.open("chern_gpu.dat");
+    fchern.open("energy_Chern_No.dat");
 
     cudaEventRecord(stop,0);
     cudaEventSynchronize(stop);
@@ -268,10 +268,10 @@ int main(int argc, char *argv[]) {
 	      chern_time/=1000.0;
 	      total_time=coeff_time+(pot_time+(chern_time*n_mesh+gpu_time*(n_mesh+1)))*n_sample;
               cerr<<setw(40)<<"Chern No. calculation time/k-point: "<<chern_time/(n_mesh+1)<<" s\n";
-	      cerr<<setw(40)<<"estimated total time:"<<setw(3)<<setfill('0')<<(int(total_time))/3600<<setw(1)<<":";
+	      cerr<<setw(40)<<"estimated total time:"<<std::right<<setw(3)<<setfill('0')<<(int(total_time))/3600<<setw(1)<<":";
 	      cerr<<setw(2)<<setfill('0')<<((int(total_time))%3600)/60<<setw(1)<<":";
 	      cerr<<setw(2)<<setfill('0')<<(int(total_time))%60<<endl<<setfill(' ');
-	      cerr<<setw(40)<<"estimated # of samples/hour:"<<n_sample/(total_time/3600.0)<<endl;
+	      cerr<<std::left<<setw(40)<<"estimated # of samples/hour:"<<n_sample/(total_time/3600.0)<<endl;
 	      cerr<<setw(40)<<"# module "<<" %(time)"<<endl;
 	      cerr<<setw(40)<<"coefficients"<<coeff_time/total_time*100.0<<"\n";
 	      cerr<<setw(40)<<"potential"<<pot_time*n_sample/total_time*100.0<<"\n";

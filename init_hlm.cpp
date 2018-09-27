@@ -78,7 +78,7 @@ int init(int argc, char* argv[], int &lx,int &ly, int & Q, int &band, int &n_mes
 
     // write the params to log file
     ofstream flog;
-    flog.open("log");
+    flog.open("log_hlm.txt");
     flog<<"########################################################"<<endl;
     flog<<setw(25)<<"seed: "<<seed<<endl;
     flog<<setw(25)<<"lx: "<<lx<<endl;

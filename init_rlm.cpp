@@ -74,7 +74,7 @@ int init(int argc, char* argv[], long &n_phi, dtype &quanta_concentration, dtype
 
     // write the params to log file
     ofstream flog;
-    flog.open("log");
+    flog.open("log_rlm.txt");
     flog<<"########################################################"<<endl;
     flog<<setw(25)<<"seed: "<<seed<<endl;
     flog<<setw(25)<<"n_phi: "<<n_phi<<endl;

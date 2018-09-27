@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
     }
 
     ofstream fchern;
-    fchern.open("chern_hlm_cpu.dat");
+    fchern.open("energy_Chern_No.txt");
 
     double kwfs_time,diag_time,chern_time;
     long total_time;

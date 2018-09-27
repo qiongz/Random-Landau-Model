@@ -92,7 +92,7 @@ int main(int argc, char *argv[]) {
 
     // initialize output data file
     ofstream fchern;
-    fchern.open("chern_rlm_cpu.dat");
+    fchern.open("energy_Chern_No.txt");
 
     double coeff_time,pot_time,diag_time,chern_time,total_time;
     auto _t1=std::chrono::high_resolution_clock::now();
