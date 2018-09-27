@@ -59,7 +59,8 @@ int main(int argc, char *argv[]) {
     ofstream fchern;
     fchern.open("chern_hlm_cpu.dat");
 
-    double kwfs_time,diag_time,chern_time,total_time;
+    double kwfs_time,diag_time,chern_time;
+    long total_time;
 
     // initialize random number generator
     VSLStreamStatePtr rndStream;
@@ -74,6 +75,8 @@ int main(int argc, char *argv[]) {
 	memset(energy_levels,0,sizeof(dtype)*n_phi);
 	// initialize the disorder potential
         VS_RNG_DTYPE(METHOD_DTYPE, rndStream, n_sites, potential,-1,1);
+
+        auto _t1=std::chrono::high_resolution_clock::now();
         // solve the (theta_1=0)-line of wave functions
         // solve all the disroder potential hamiltonians
         for(id = 0; id < num_threads; id++) {
@@ -99,6 +102,10 @@ int main(int argc, char *argv[]) {
         for(id = 0; id < num_threads; id++) 
             pthread_join(peer_thds[id], &thread_results);
         
+        auto _t2=std::chrono::high_resolution_clock::now();
+        diag_time=std::chrono::duration_cast<chrono::microseconds>(_t2-_t1).count()/1.0E6;
+	if(n==0)
+	cerr<<std::left<<setw(40)<<"diagonalization time/k-point: "<<diag_time/(n_mesh+1)<<" s\n";
         // average the energy over the first line of theta_2
         // energy will be divided by (n_mesh+1)*(n_mesh+1) finally
         for(i = 0; i < n_phi; i++) {
@@ -145,6 +152,7 @@ int main(int argc, char *argv[]) {
             for(k=0; k<dim_wfs; k++)
                 wfs_full[((theta_1%2)*(n_mesh+1)+n_mesh)*dim_wfs+k]=wfs_full[((theta_1%2)*(n_mesh+1))*dim_wfs+k];
 
+            _t1=std::chrono::high_resolution_clock::now();
             // calculate Chern numbers
             for(id = 0; id < num_threads; id++) {
                 peer_Chern_paramsT *params;
@@ -162,7 +170,20 @@ int main(int argc, char *argv[]) {
             // join the threads
             for(id = 0; id < num_threads; id++)
                 pthread_join(peer_thds[id], NULL);
-
+            _t2=std::chrono::high_resolution_clock::now();
+            chern_time=std::chrono::duration_cast<chrono::microseconds>(_t2-_t1).count()/1.0E6;
+           
+	    if(theta_1==1 && n==0){
+	    total_time=round((chern_time*n_mesh+diag_time*(n_mesh+1))*n_sample);
+            cerr<<setw(40)<<"Chern No. calculation time/k-point: "<<chern_time/(n_mesh+1)<<" s\n";
+	    cerr<<setw(40)<<"estimated total time:"<<std::right<<setw(3)<<setfill('0')<<total_time/3600<<setw(1)<<":";
+	    cerr<<setw(2)<<std::right<<setfill('0')<<(total_time%3600)/60<<setw(1)<<":";
+	    cerr<<setw(2)<<std::right<<setfill('0')<<total_time%60<<endl<<setfill(' ');
+	    cerr<<std::left<<setw(40)<<"estimated # of samples/hour:"<<n_sample/(total_time/3600.0)<<endl;
+	    cerr<<setw(40)<<"# module"<<"%(time)"<<endl;
+	    cerr<<setw(40)<<"diagonalization"<<diag_time*(n_mesh+1)*n_sample/total_time*100.0<<endl;
+	    cerr<<setw(40)<<"Chern No. calculation"<<chern_time*n_mesh*n_sample/total_time*100.0<<endl;
+	    }
             // collect the chern number contributions from the theta-1= (global_theta_1-1) line
             for(k=0; k<n_phi; k++) {
                 for(i=0; i<n_mesh; i++)

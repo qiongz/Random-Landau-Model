@@ -217,10 +217,10 @@ int main(int argc, char *argv[]) {
 	if(theta_1==1 && n==0){
 	    total_time=coeff_time+(pot_time+(chern_time*n_mesh+diag_time*(n_mesh+1)))*n_sample;
             cerr<<setw(40)<<"Chern No. calculation time/k-point: "<<chern_time/(n_mesh+1)<<" s\n";
-	    cerr<<setw(40)<<"estimated total time:"<<setw(3)<<setfill('0')<<(int(total_time))/3600<<setw(1)<<":";
+	    cerr<<setw(40)<<"estimated total time:"<<std::right<<setw(3)<<setfill('0')<<(int(total_time))/3600<<setw(1)<<":";
 	    cerr<<setw(2)<<setfill('0')<<((int(total_time))%3600)/60<<setw(1)<<":";
 	    cerr<<setw(2)<<setfill('0')<<(int(total_time))%60<<endl<<setfill(' ');
-	    cerr<<setw(40)<<"estimated # of samples/hour:"<<n_sample/(total_time/3600.0)<<endl;
+	    cerr<<std::left<<setw(40)<<"estimated # of samples/hour:"<<n_sample/(total_time/3600.0)<<endl;
 	    cerr<<setw(40)<<"# module"<<"%(time)"<<endl;
 	    cerr<<setw(40)<<"coefficients"<<coeff_time/total_time*100.0<<"\n";
 	    cerr<<setw(40)<<"potential"<<pot_time*n_sample/total_time*100.0<<"\n";

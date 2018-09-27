@@ -197,6 +197,19 @@ main_rlm_cpu_dp.o:main_rlm_cpu.cpp
 rlm_cpu_dp:main_rlm_cpu_dp.o hamiltonian_rlm_cpu_dp.o init_rlm_icc_dp.o disorder_potential_icc_dp.o chern_icc_dp.o matrix_coefficients_icc_dp.o mkl_diag_icc_dp.o wfs_file_icc_dp.o
 	$(ICC) -DDP $(ICC_LDFLAGS) $^ $(PARAL_MKL_LIBS) -O3 -o $@ 
 
+# ------ compile cpu single precision version for Hofstadter lattice model ------
+
+init_hlm_icc.o:init_hlm.cpp init_hlm.h
+	$(ICC) $(CFLAGS) -c -o $@ $<
+
+hamiltonian_hlm_cpu.o:hamiltonian_hlm_cpu.cpp hamiltonian_hlm_cpu.h
+	$(ICC) $(MKL_CFLAGS) -c -o $@ $<
+
+main_hlm_cpu.o:main_hlm_cpu.cpp 
+	$(ICC) $(CFLAGS) $(MKL_CFLAGS) -c -o $@ $< 
+
+hlm_cpu_sp:main_hlm_cpu.o hamiltonian_hlm_cpu.o init_hlm_icc.o chern_icc.o mkl_diag_icc.o wfs_file_icc.o
+	$(ICC) $(ICC_LDFLAGS) $^ $(PARAL_MKL_LIBS) -O3 -o $@ 
 
 
 # ------ compile cpu double precision version for Hofstadter lattice model ------
