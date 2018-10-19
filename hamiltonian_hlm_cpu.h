@@ -15,7 +15,7 @@ using namespace std;
 
 
 /* Structure to store address of each variable in peer_solve_projected() */
-typedef struct { 
+struct struct_solve { 
     int lx;
     int ly;
     int Q;
@@ -31,7 +31,7 @@ typedef struct {
     complex<dtype> *wfs_clean;
     complex<dtype> *truc_hamiltonian;
     dtype *truc_energy;
-} peer_solve_paramsT;
+};
 
 void get_wfs_ktheta(int theta_1,int theta_2,complex<dtype> *wfs);
 // used to calculate the prestored wave_functions

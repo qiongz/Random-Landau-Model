@@ -9,7 +9,7 @@
 using namespace std;
 
 /* Structure to store address of each variable in peer_solve_projected() */
-typedef struct {
+struct struct_solve {
     int theta_1;
     int n_phi;
     int n_mesh;
@@ -23,7 +23,7 @@ typedef struct {
     complex<dtype> *v_mn;
     complex<dtype> *coeff_jm;
     complex<dtype> *coeff_m_theta;
-} peer_solve_paramsT;
+};
 
 // multi-threaded version
 void *peer_solve_projected( void* peer_solve_params);
