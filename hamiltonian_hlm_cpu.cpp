@@ -151,7 +151,7 @@ void *peer_solve_projected(void* peer_solve_params) {
     int n_sites,n_phi,n_mesh;
     unsigned long dim_wfs;
     int wfs_idx,en_idx;
-    peer_solve_paramsT *params = (peer_solve_paramsT*) peer_solve_params;
+    struct struct_solve *params = (struct struct_solve*) peer_solve_params;
     complex<dtype> alpha{1.0f,0.0f};
     complex<dtype> beta{0.0f,0.0f};
     theta_1 = params->theta_1;
@@ -180,6 +180,5 @@ void *peer_solve_projected(void* peer_solve_params) {
         mkl_gemm3m(CblasColMajor,CblasNoTrans,CblasNoTrans,n_sites,n_phi,n_phi,&alpha,params->wfs_clean,n_sites,params->truc_hamiltonian,n_phi,&beta,params->wfs_full+wfs_idx,n_sites);	
     }
     // clear tempory memory space
-    free(params);
-    pthread_exit((void*) 0);
+    pthread_exit((void*)params);
 }

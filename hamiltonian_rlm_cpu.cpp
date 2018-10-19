@@ -5,7 +5,7 @@ void *peer_solve_projected( void* peer_solve_params){
     int idx_m,idx_kx,idx_jk,delta_jk;
     int n_phi,dim_n,dim_m,off_head;
     complex<dtype> coeff_theta_jm,sum;
-    peer_solve_paramsT *params = (peer_solve_paramsT*) peer_solve_params;
+    struct struct_solve *params=(struct struct_solve *)peer_solve_params;
     n_phi=params->n_phi;
     dim_n=params->dim_n;
     dim_m=params->dim_m;
@@ -48,8 +48,7 @@ void *peer_solve_projected( void* peer_solve_params){
             }
         mkl_heevd(params->wave_function + wfs_index, params->energy + en_index, n_phi);
     }
-    free(peer_solve_params);
-    pthread_exit((void*) 0);
+    pthread_exit((void*)params);
 }
 
 void solve_projected(int theta_1, int n_mesh,int n_phi, int dim_m, int dim_n,int off_head, 
@@ -95,4 +94,5 @@ complex<dtype> *wave_function,complex<dtype> *coeff_m_theta, complex<dtype> *coe
             }
         mkl_heevd(wave_function + wfs_index, energy + en_index, n_phi);
     }
+
 }

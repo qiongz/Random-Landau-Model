@@ -89,6 +89,9 @@ int main(int argc, char *argv[]) {
     for(int i = 0; i < n_mesh; i++)
         thds_ctheta[i% num_threads][ctheta_len[i%num_threads]++]=i;
     pthread_t *peer_thds = new pthread_t[num_threads];
+    struct struct_solve params[num_threads]; 
+    struct struct_Chern Chern_params[num_threads];
+
 
     // initialize output data file
     ofstream fchern;
@@ -120,22 +123,20 @@ int main(int argc, char *argv[]) {
         int theta_1=0;
 	// multi-threaded version
         for(int id = 0; id < num_threads; id++) {
-            peer_solve_paramsT * params;
-            params = (peer_solve_paramsT *) malloc(sizeof(peer_solve_paramsT));
-	    params->theta_1 = theta_1;
-	    params->n_phi = n_phi;
-	    params->n_mesh = n_mesh;
-	    params->dim_m = dim_m;
-	    params->dim_n = dim_n;
-	    params->off_head = off_head;
-            params->theta_2 = thds_theta[id];
-            params->theta_len = theta_len[id];
-            params->wave_function = wave_functions;
-            params->energy = energy_theta;
-            params->v_mn = v_mn;
-            params->coeff_jm = coeff_jm;
-            params->coeff_m_theta = coeff_m_theta;
-            pthread_create(&(peer_thds[id]), NULL, peer_solve_projected,  (void* )params);
+	    params[id].theta_1 = theta_1;
+	    params[id].n_phi = n_phi;
+	    params[id].n_mesh = n_mesh;
+	    params[id].dim_m = dim_m;
+	    params[id].dim_n = dim_n;
+	    params[id].off_head = off_head;
+            params[id].theta_2 = thds_theta[id];
+            params[id].theta_len = theta_len[id];
+            params[id].wave_function = wave_functions;
+            params[id].energy = energy_theta;
+            params[id].v_mn = v_mn;
+            params[id].coeff_jm = coeff_jm;
+            params[id].coeff_m_theta = coeff_m_theta;
+            pthread_create(&(peer_thds[id]), NULL, peer_solve_projected,  (void* )&params[id]);
         }
         // join all the threads
         for(int id = 0; id < num_threads; id++)
@@ -161,22 +162,20 @@ int main(int argc, char *argv[]) {
          // solve for another line
 	
         for(int id = 0; id < num_threads; id++) {
-            peer_solve_paramsT * params;
-            params = (peer_solve_paramsT *) malloc(sizeof(peer_solve_paramsT));
-	    params->theta_1 = theta_1;
-	    params->n_phi = n_phi;
-	    params->n_mesh = n_mesh;
-	    params->dim_m = dim_m;
-	    params->dim_n = dim_n;
-	    params->off_head = off_head;
-            params->theta_2 = thds_theta[id];
-            params->theta_len = theta_len[id];
-            params->wave_function = wave_functions;
-            params->energy = energy_theta;
-            params->v_mn = v_mn;
-            params->coeff_jm = coeff_jm;
-            params->coeff_m_theta = coeff_m_theta;
-            pthread_create(&(peer_thds[id]), NULL, peer_solve_projected,  (void* )params);
+	    params[id].theta_1 = theta_1;
+	    params[id].n_phi = n_phi;
+	    params[id].n_mesh = n_mesh;
+	    params[id].dim_m = dim_m;
+	    params[id].dim_n = dim_n;
+	    params[id].off_head = off_head;
+            params[id].theta_2 = thds_theta[id];
+            params[id].theta_len = theta_len[id];
+            params[id].wave_function = wave_functions;
+            params[id].energy = energy_theta;
+            params[id].v_mn = v_mn;
+            params[id].coeff_jm = coeff_jm;
+            params[id].coeff_m_theta = coeff_m_theta;
+            pthread_create(&(peer_thds[id]), NULL, peer_solve_projected,  (void* )&params[id]);
         }
         // join all the threads
         for(int id = 0; id < num_threads; id++)
@@ -194,17 +193,15 @@ int main(int argc, char *argv[]) {
         _t1=std::chrono::high_resolution_clock::now();
        
         for(int id = 0; id < num_threads; id++) {
-            peer_Chern_paramsT *params;
-            params = (peer_Chern_paramsT *) malloc(sizeof(peer_Chern_paramsT));
-	    params-> n_phi = n_phi;
-	    params-> dim_vec = n_phi;
-	    params-> n_mesh = n_mesh;
-	    params-> theta_1 = theta_1;
-            params-> theta_2 = thds_ctheta[id];
-            params-> theta_len = ctheta_len[id];
-            params-> wave_function = wave_functions;
-            params-> chern_numbers_theta = chern_numbers_theta;
-            pthread_create(&(peer_thds[id]), NULL, peer_cal_Chern,  (void*)params);
+	    Chern_params[id].n_phi = n_phi;
+	    Chern_params[id].dim_vec = n_phi;
+	    Chern_params[id].n_mesh = n_mesh;
+	    Chern_params[id].theta_1 = theta_1;
+            Chern_params[id].theta_2 = thds_ctheta[id];
+            Chern_params[id].theta_len = ctheta_len[id];
+            Chern_params[id].wave_function = wave_functions;
+            Chern_params[id].chern_numbers_theta = chern_numbers_theta;
+            pthread_create(&(peer_thds[id]), NULL, peer_cal_Chern,  (void*)&Chern_params[id]);
         }
         // join all the threads
         for(int id = 0; id < num_threads; id++)
