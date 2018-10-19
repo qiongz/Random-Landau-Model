@@ -1,7 +1,7 @@
 #include"hamiltonian_rlm_cpu.h"
 void *peer_solve_projected( void* peer_solve_params){
     int m, n, j, k, l ;
-    int wfs_index, en_index, kx, ky;
+    unsigned long wfs_index, en_index, kx, ky;
     int idx_m,idx_kx,idx_jk,delta_jk;
     int n_phi,dim_n,dim_m,off_head;
     complex<dtype> coeff_theta_jm,sum;
@@ -54,7 +54,7 @@ void *peer_solve_projected( void* peer_solve_params){
 void solve_projected(int theta_1, int n_mesh,int n_phi, int dim_m, int dim_n,int off_head, 
 complex<dtype> *wave_function,complex<dtype> *coeff_m_theta, complex<dtype> *coeff_jm,complex<dtype> *v_mn, dtype *energy){
     int m, n, j, k, l ;
-    int wfs_index, en_index, kx, ky;
+    unsigned long wfs_index, en_index, kx, ky;
     int idx_m,idx_kx,idx_jk,delta_jk;
     complex<dtype> coeff_theta_jm,sum;
 

@@ -150,7 +150,7 @@ void *peer_solve_projected(void* peer_solve_params) {
     int theta_1,theta_2,l,i,j;
     int n_sites,n_phi,n_mesh;
     unsigned long dim_wfs;
-    int wfs_idx,en_idx;
+    unsigned long wfs_idx,en_idx;
     struct struct_solve *params = (struct struct_solve*) peer_solve_params;
     complex<dtype> alpha{1.0f,0.0f};
     complex<dtype> beta{0.0f,0.0f};
