@@ -4,12 +4,12 @@
 #include<complex>
 #include<cmath>
 #include<cstring>
-#include"chern.h"
-#include"wfs_file.h"
+#include"../diag_wrappers/chern.h"
+#include"../diag_wrappers/wfs_file.h"
+#include"../diag_wrappers/mkl_diag.h"
 #include"hamiltonian_rlm_cpu.h"
 #include"disorder_potential.h"
 #include"matrix_coefficients.h"
-#include"mkl_diag.h"
 #include"init_rlm.h"
 #include<pthread.h>
 #if defined DP

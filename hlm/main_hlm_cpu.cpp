@@ -4,10 +4,10 @@
 #include<complex>
 #include<cmath>
 #include<cstring>
-#include"chern.h"
-#include"wfs_file.h"
+#include"../diag_wrappers/chern.h"
+#include"../diag_wrappers/wfs_file.h"
+#include"../diag_wrappers/mkl_diag.h"
 #include"hamiltonian_hlm_cpu.h"
-#include"mkl_diag.h"
 #include"init_hlm.h"
 #include<pthread.h>
 #if defined DP

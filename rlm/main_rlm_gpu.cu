@@ -9,16 +9,16 @@
 #include"disorder_potential.h"
 #include"potential_coeff.h"
 #include"hamiltonian_rlm_gpu.h"
-#include"wfs_file.h"
-#include"chern.h"
+#include"../diag_wrappers/wfs_file.h"
+#include"../diag_wrappers/chern.h"
 // macros for using different
 // diagonalization routines
 #if defined magma
-#include"magma_diag.h"
+#include"../diag_wrappers/magma_diag.h"
 #elif defined mkl
-#include "mkl_diag.h"
+#include "../diag_wrappers/mkl_diag.h"
 #elif defined cusolver
-#include"cusolver_diag.h"
+#include"../diag_wrappers/cusolver_diag.h"
 #endif
 
 using namespace std;

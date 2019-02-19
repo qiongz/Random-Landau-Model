@@ -54,6 +54,10 @@ default:
 
 all:cpu gpu clean
 
+rlm:rlm_cpu_dp rlm_gpu_mkl clean
+
+hlm:hlm_cpu_dp clean
+
 cpu:rlm_cpu_sp rlm_cpu_dp hlm_cpu_sp hlm_cpu_dp clean
 
 gpu:rlm_gpu_cusolver rlm_gpu_magma rlm_gpu_mkl rlm_gpu_magma_wfs hlm_gpu_magma clean
@@ -67,46 +71,46 @@ remove:
 
 # ------ compile gpu version of random Landau model ------
 # ---- object files -----
-init_rlm.o:init_rlm.cpp init_rlm.h
+init_rlm.o:rlm/init_rlm.cpp rlm/init_rlm.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-wfs_file.o:wfs_file.cpp wfs_file.h
+wfs_file.o:diag_wrappers/wfs_file.cpp diag_wrappers/wfs_file.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-matrix_coefficients.o:matrix_coefficients.cpp matrix_coefficients.h
+matrix_coefficients.o:rlm/matrix_coefficients.cpp rlm/matrix_coefficients.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-disorder_potential.o:disorder_potential.cpp disorder_potential.h
+disorder_potential.o:rlm/disorder_potential.cpp rlm/disorder_potential.h
 	$(CC) $(CFLAGS) $(MKL_CFLAGS) -c -o $@ $<
 
-potential_coeff.o:potential_coeff.cu
+potential_coeff.o:rlm/potential_coeff.cu
 	$(NVCC) $(NVCC_CFLAGS) $(CUDA_INC) -c -o $@ $<
 
-chern.o:chern.cpp chern.h wfs_file.h
+chern.o:diag_wrappers/chern.cpp diag_wrappers/chern.h diag_wrappers/wfs_file.h
 	$(CC) $(CFLAGS) $(MKL_CFLAGS) -c -o $@ $<
 
-hamiltonian_rlm_gpu.o:hamiltonian_rlm_gpu.cu hamiltonian_rlm_gpu.h
+hamiltonian_rlm_gpu.o:rlm/hamiltonian_rlm_gpu.cu rlm/hamiltonian_rlm_gpu.h
 	$(NVCC) $(NVCC_CFLAGS) $(CUDA_INC) -c -o $@ $<
 
-cusolver_diag.o:cusolver_diag.cu cusolver_diag.h
+cusolver_diag.o:diag_wrappers/cusolver_diag.cu diag_wrappers/cusolver_diag.h
 	$(NVCC) $(NVCC_CFLAG) $(CUDA_INC) -c -o $@ $<
 
-magma_diag.o:magma_diag.cu magma_diag.h 
+magma_diag.o:diag_wrappers/magma_diag.cu diag_wrappers/magma_diag.h 
 	$(NVCC) $(MAGMA_CFLAGS) $(MAGMA_INC) $(NVCC_CFLAGS)  -c -o $@ $<
 
-mkl_diag.o:mkl_diag.cpp mkl_diag.h
+mkl_diag.o:diag_wrappers/mkl_diag.cpp diag_wrappers/mkl_diag.h
 	$(CC) $(CFLAGS)  $(MKL_CFLAGS) -c -o $@ $<
 
-main_rlm_gpu_cusolver.o:main_rlm_gpu.cu 
+main_rlm_gpu_cusolver.o:rlm/main_rlm_gpu.cu 
 	$(NVCC) -Dcusolver $(NVCC_CFLAGS) $(CUDA_INC) -c -o $@ $<	
 
-main_rlm_gpu_magma.o:main_rlm_gpu.cu
+main_rlm_gpu_magma.o:rlm/main_rlm_gpu.cu
 	$(NVCC) -Dmagma $(MAGMA_CFLAGS) $(MAGMA_INC) $(NVCC_CFLAGS) -c -o $@ $<
 
-main_rlm_gpu_magma_wfs.o:main_rlm_gpu.cu
+main_rlm_gpu_magma_wfs.o:rlm/main_rlm_gpu.cu
 	$(NVCC) -Dmagma -DwfsIO $(MAGMA_CFLAGS) $(MAGMA_INC) $(NVCC_CFLAGS) -c -o $@ $<
 
-main_rlm_gpu_mkl.o:main_rlm_gpu.cu 
+main_rlm_gpu_mkl.o:rlm/main_rlm_gpu.cu 
 	$(NVCC) -Dmkl $(NVCC_CFLAGS) $(CUDA_INC) -c -o $@ $<	
 
 rlm_gpu_linker_cusolver.o:main_rlm_gpu_cusolver.o hamiltonian_rlm_gpu.o cusolver_diag.o potential_coeff.o
@@ -118,7 +122,7 @@ rlm_gpu_linker_magma.o:main_rlm_gpu_magma.o hamiltonian_rlm_gpu.o  magma_diag.o 
 rlm_gpu_linker_magma_wfs.o:main_rlm_gpu_magma_wfs.o hamiltonian_rlm_gpu.o  magma_diag.o potential_coeff.o
 	$(NVCC) $(NVCC_LDFLAGS)  $^ -o $@
 
-rlm_gpu_linker_mkl.o:main_rlm_gpu_mkl.o hamiltonian_gpu.o potential_coeff.o
+rlm_gpu_linker_mkl.o:main_rlm_gpu_mkl.o hamiltonian_rlm_gpu.o potential_coeff.o
 	$(NVCC) $(NVCC_LDFLAGS)  $^ -o $@
 
 
@@ -139,28 +143,28 @@ rlm_gpu_magma_wfs:main_rlm_gpu_magma_wfs.o rlm_gpu_linker_magma_wfs.o init_rlm.o
 
 # ------ compile cpu version of random Landau model ------
 
-init_rlm_icc.o:init_rlm.cpp init_rlm.h
+init_rlm_icc.o:rlm/init_rlm.cpp rlm/init_rlm.h
 	$(ICC) $(CFLAGS) -c -o $@ $<
 	
-wfs_file_icc.o:wfs_file.cpp wfs_file.h
+wfs_file_icc.o:diag_wrappers/wfs_file.cpp diag_wrappers/wfs_file.h
 	$(ICC) $(CFLAGS) -c -o $@ $<
 
-matrix_coefficients_icc.o:matrix_coefficients.cpp matrix_coefficients.h
+matrix_coefficients_icc.o:rlm/matrix_coefficients.cpp rlm/matrix_coefficients.h
 	$(ICC) $(CFLAGS) -c -o $@ $<
 
-disorder_potential_icc.o:disorder_potential.cpp disorder_potential.h
+disorder_potential_icc.o:rlm/disorder_potential.cpp rlm/disorder_potential.h
 	$(ICC) $(CFLAGS) $(MKL_CFLAGS) -c -o $@ $<
 
-hamiltonian_rlm_cpu.o:hamiltonian_rlm_cpu.cpp hamiltonian_rlm_cpu.h
+hamiltonian_rlm_cpu.o:rlm/hamiltonian_rlm_cpu.cpp rlm/hamiltonian_rlm_cpu.h
 	$(ICC) $(MKL_CFLAGS) -c -o $@ $<
 
-chern_icc.o:chern.cpp chern.h
+chern_icc.o:diag_wrappers/chern.cpp diag_wrappers/chern.h
 	$(ICC) $(CFLAGS) $(MKL_CFLAGS) -c -o $@ $<
 
-mkl_diag_icc.o:mkl_diag.cpp mkl_diag.h
+mkl_diag_icc.o:diag_wrappers/mkl_diag.cpp diag_wrappers/mkl_diag.h
 	$(ICC) $(CFLAGS) $(MKL_CFLAGS) -c -o $@ $<
 
-main_rlm_cpu.o:main_rlm_cpu.cpp 
+main_rlm_cpu.o:rlm/main_rlm_cpu.cpp 
 	$(ICC) $(CFLAGS) $(MKL_CFLAGS) -c -o $@ $< 
 
 rlm_cpu_sp:main_rlm_cpu.o hamiltonian_rlm_cpu.o init_rlm_icc.o disorder_potential_icc.o chern_icc.o matrix_coefficients_icc.o mkl_diag_icc.o wfs_file_icc.o
@@ -170,28 +174,28 @@ rlm_cpu_sp:main_rlm_cpu.o hamiltonian_rlm_cpu.o init_rlm_icc.o disorder_potentia
 
 # ------ compile cpu double precision version for random Landau model------
 
-init_rlm_icc_dp.o:init_rlm.cpp init_rlm.h
+init_rlm_icc_dp.o:rlm/init_rlm.cpp rlm/init_rlm.h
 	$(ICC) -DDP $(CFLAGS) -c -o $@ $<
 	
-wfs_file_icc_dp.o:wfs_file.cpp wfs_file.h
+wfs_file_icc_dp.o:diag_wrappers/wfs_file.cpp diag_wrappers/wfs_file.h
 	$(ICC) -DDP $(CFLAGS) -c -o $@ $<
 
-matrix_coefficients_icc_dp.o:matrix_coefficients.cpp matrix_coefficients.h
+matrix_coefficients_icc_dp.o:rlm/matrix_coefficients.cpp rlm/matrix_coefficients.h
 	$(ICC) -DDP $(CFLAGS) -c -o $@ $<
 
-disorder_potential_icc_dp.o:disorder_potential.cpp disorder_potential.h
+disorder_potential_icc_dp.o:rlm/disorder_potential.cpp rlm/disorder_potential.h
 	$(ICC) -DDP $(CFLAGS) $(MKL_CFLAGS) -c -o $@ $<
 
-hamiltonian_rlm_cpu_dp.o:hamiltonian_rlm_cpu.cpp hamiltonian_rlm_cpu.h
+hamiltonian_rlm_cpu_dp.o:rlm/hamiltonian_rlm_cpu.cpp rlm/hamiltonian_rlm_cpu.h
 	$(ICC) -DDP $(MKL_CFLAGS) -c -o $@ $<
 
-chern_icc_dp.o:chern.cpp chern.h
+chern_icc_dp.o:diag_wrappers/chern.cpp diag_wrappers/chern.h
 	$(ICC) -DDP $(CFLAGS) $(MKL_CFLAGS) -c -o $@ $<
 
-mkl_diag_icc_dp.o:mkl_diag.cpp mkl_diag.h
+mkl_diag_icc_dp.o:diag_wrappers/mkl_diag.cpp diag_wrappers/mkl_diag.h
 	$(ICC) -DDP $(CFLAGS) $(MKL_CFLAGS) -c -o $@ $<
 
-main_rlm_cpu_dp.o:main_rlm_cpu.cpp 
+main_rlm_cpu_dp.o:rlm/main_rlm_cpu.cpp 
 	$(ICC) -DDP $(CFLAGS) $(MKL_CFLAGS) -c -o $@ $< 
 
 rlm_cpu_dp:main_rlm_cpu_dp.o hamiltonian_rlm_cpu_dp.o init_rlm_icc_dp.o disorder_potential_icc_dp.o chern_icc_dp.o matrix_coefficients_icc_dp.o mkl_diag_icc_dp.o wfs_file_icc_dp.o
@@ -199,13 +203,13 @@ rlm_cpu_dp:main_rlm_cpu_dp.o hamiltonian_rlm_cpu_dp.o init_rlm_icc_dp.o disorder
 
 # ------ compile cpu single precision version for Hofstadter lattice model ------
 
-init_hlm_icc.o:init_hlm.cpp init_hlm.h
+init_hlm_icc.o:hlm/init_hlm.cpp hlm/init_hlm.h
 	$(ICC) $(CFLAGS) -c -o $@ $<
 
-hamiltonian_hlm_cpu.o:hamiltonian_hlm_cpu.cpp hamiltonian_hlm_cpu.h
+hamiltonian_hlm_cpu.o:hlm/hamiltonian_hlm_cpu.cpp hlm/hamiltonian_hlm_cpu.h
 	$(ICC) $(MKL_CFLAGS) -c -o $@ $<
 
-main_hlm_cpu.o:main_hlm_cpu.cpp 
+main_hlm_cpu.o:hlm/main_hlm_cpu.cpp 
 	$(ICC) $(CFLAGS) $(MKL_CFLAGS) -c -o $@ $< 
 
 hlm_cpu_sp:main_hlm_cpu.o hamiltonian_hlm_cpu.o init_hlm_icc.o chern_icc.o mkl_diag_icc.o wfs_file_icc.o
@@ -214,13 +218,13 @@ hlm_cpu_sp:main_hlm_cpu.o hamiltonian_hlm_cpu.o init_hlm_icc.o chern_icc.o mkl_d
 
 # ------ compile cpu double precision version for Hofstadter lattice model ------
 
-init_hlm_icc_dp.o:init_hlm.cpp init_hlm.h
+init_hlm_icc_dp.o:hlm/init_hlm.cpp hlm/init_hlm.h
 	$(ICC) -DDP $(CFLAGS) -c -o $@ $<
 
-hamiltonian_hlm_cpu_dp.o:hamiltonian_hlm_cpu.cpp hamiltonian_hlm_cpu.h
+hamiltonian_hlm_cpu_dp.o:hlm/hamiltonian_hlm_cpu.cpp hlm/hamiltonian_hlm_cpu.h
 	$(ICC) -DDP $(MKL_CFLAGS) -c -o $@ $<
 
-main_hlm_cpu_dp.o:main_hlm_cpu.cpp 
+main_hlm_cpu_dp.o:hlm/main_hlm_cpu.cpp 
 	$(ICC) -DDP $(CFLAGS) $(MKL_CFLAGS) -c -o $@ $< 
 
 hlm_cpu_dp:main_hlm_cpu_dp.o hamiltonian_hlm_cpu_dp.o init_hlm_icc_dp.o chern_icc_dp.o mkl_diag_icc_dp.o wfs_file_icc_dp.o

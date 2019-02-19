@@ -1,4 +1,4 @@
-#include"mkl_diag.h"
+#include"../diag_wrappers/mkl_diag.h"
 #include<complex>
 #include<pthread.h>
 #if defined DP
