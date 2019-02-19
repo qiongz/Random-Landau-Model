@@ -9,8 +9,8 @@ void usage(char* target) {
     cout << "  -q  q [p/q, p set to 1] \n";
     cout << "  -g  theta mesh griding size (n_mesh)\n";
     cout << "  -b  band to be projected onto\n";
-    cout << "  -c  # of disorder configurations\n";
-    cout << "  -s  seed to generate seeds[n_sample]\n";
+    cout << "  -c  # of disorder configurations (n_sample)\n";
+    cout << "  -s  seed to generate seeds\n";
     cout << "  -t  # of threads\n";
 }
 

@@ -183,7 +183,7 @@ int main(int argc, char *argv[]) {
             // collect the chern number contributions from the theta-1= (global_theta_1-1) line
             for(k=0; k<n_phi; k++) {
                 for(i=0; i<n_mesh; i++)
-                    chern_numbers[k]+=chern_numbers_theta[k*n_mesh+i];
+                    chern_numbers[k]+=-chern_numbers_theta[k*n_mesh+i];
             }
         }
         // average the energy levels by dividing (n_mesh+1)*(n_mesh+1) at the final stage

@@ -60,14 +60,14 @@ hlm:hlm_cpu_dp clean
 
 cpu:rlm_cpu_sp rlm_cpu_dp hlm_cpu_sp hlm_cpu_dp clean
 
-gpu:rlm_gpu_cusolver rlm_gpu_magma rlm_gpu_mkl rlm_gpu_magma_wfs hlm_gpu_magma clean
+gpu:rlm_gpu_cusolver rlm_gpu_magma rlm_gpu_mkl rlm_gpu_magma_wfs clean
 
 .PHONY:clean remove
 clean:
 	rm -f *.o 
 
 remove:
-	rm -f  rlm_gpu_* rlm_cpu* hlm_cpu_* hlm_gpu*
+	rm -f  rlm_gpu_* rlm_cpu* hlm_cpu_* 
 
 # ------ compile gpu version of random Landau model ------
 # ---- object files -----

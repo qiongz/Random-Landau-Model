@@ -9,8 +9,8 @@ void usage(char* target) {
     cout << "  -i  impurity concentration\n";
     cout << "  -g  theta mesh griding size (n_mesh)\n";
     cout << "  -d  disorder potential K-space cut (offhead)\n";
-    cout << "  -c  # of disorder configurations\n";
-    cout << "  -s  seed to generate seeds[n_sample]\n";
+    cout << "  -c  # of disorder configurations(n_sample)\n";
+    cout << "  -s  seed to generate seeds\n";
     cout << "  -t  # of threads\n";
 }
 
