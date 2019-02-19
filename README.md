@@ -1,9 +1,7 @@
 # Random-Landau-Model
 Diagonalization and Chern number calculation of each eigenstate for the disorder projected continuum Landau-level model and Hofstadter lattice model
 ## Description
-With Chern number we could distinguish the conducting and total density of states and thus perform finite-size scaling and extract the localization-length exponent. This program calculate the disorder projected continuum random Landau-level model (rlm) as well as the Hofstadter lattice model (hlm), diagonalizing the projected hamiltonian and calculate the Chern No. for each eigenstates in each disorder sample. This program support both CPU/GPU or mixed parallel acceleration.
-For more information of the two models and localization-length exponent calculation, please visit: https://journals.aps.org/prb/abstract/10.1103/PhysRevB.99.024205/  
-or arXiv:https://arxiv.org/abs/1804.00398
+With Chern number we could distinguish the conducting and total density of states and thus perform finite-size scaling and extract the localization-length exponent. This program calculate the disorder projected continuum random Landau-level model (rlm) as well as the Hofstadter lattice model (hlm), diagonalizing the projected hamiltonian and calculate the Chern No. for each eigenstates in each disorder sample. This program support both CPU/GPU or mixed parallel acceleration.For more information of the two models please visit APS: https://journals.aps.org/prb/abstract/10.1103/PhysRevB.99.024205/ or arXiv:https://arxiv.org/abs/1804.00398
 ## Prerequisites
 Environment:Linux
 
@@ -78,7 +76,7 @@ Similar to the hlm, here we diagonalize a system with total flux quanta n_phi=16
 
 >./rlm_cpu_dp -n 16 -i 16 -g 64 -c 2 -t 4  
 
-And the results are written in "energy_Chern_No.txt", we could verify that there are two samples with each 16 eigenstate and each sample has total Chern # equals "1".  
+And the results are written in "energy_Chern_No.txt", we could verify that there are two samples with each 16 eigenstate and each sample has total Chern # equals "1".    
 
 <pre><code>more energy_Chern_No.txt  
 0        -5.7376113      -1.2490009e-16
@@ -112,9 +110,10 @@ And the results are written in "energy_Chern_No.txt", we could verify that there
 1        2.0576746       -2.0816682e-16
 1        3.0926          -2.7755576e-17
 1        3.7359859       1.110223e-16
-1        6.3444782       0</code></pre>  
+1        6.3444782       0  Landau-Model
+</code></pre>    
 
-####GPU version and benchmark
+#### GPU version and benchmark
 The GPU version is originally used for single precision calculation but finally I found that the accuracy of the Chern # calculation is severely effected for nphi>1500, double precision CPU version is suggested for finite-size-scaling calculation of localization-length exponent, the single precision CPU/GPU version are still useful for generating and store wave function for further Machine learning test.
 
 Here we test the CPU+GPU version with MAGMA library supported:
