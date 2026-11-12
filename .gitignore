@@ -1,0 +1,8 @@
+build/
+*.o
+*.dat
+energy_Chern_No.txt
+log_*.txt
+rlm_cpu_*
+rlm_gpu_*
+hlm_cpu_*
