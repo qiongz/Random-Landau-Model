@@ -1,4 +1,5 @@
 #include"init_rlm.h"
+#include<thread>
 using namespace std;
 
 void usage(char* target) {
@@ -22,7 +23,9 @@ int init(int argc, char* argv[], long &n_phi, dtype &quanta_concentration, dtype
     n_sample = 1;
     quanta_concentration = 1;
     impurity_concentration = 16;
-    num_threads=1;
+    num_threads = static_cast<long>(std::thread::hardware_concurrency());
+    if (num_threads < 1)
+        num_threads = 1;
     #if __cplusplus > 199711L
     seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
     #else
@@ -71,6 +74,8 @@ int init(int argc, char* argv[], long &n_phi, dtype &quanta_concentration, dtype
         usage(argv[0]);
         exit(2);
     }
+    if (num_threads < 1)
+        num_threads = 1;
 
     // write the params to log file
     ofstream flog;
@@ -80,6 +85,7 @@ int init(int argc, char* argv[], long &n_phi, dtype &quanta_concentration, dtype
     flog<<setw(25)<<"n_phi: "<<n_phi<<endl;
     flog<<setw(25)<<"n_mesh: "<<n_mesh<<endl;
     flog<<setw(25)<<"n_sample: "<<n_sample<<endl;
+    flog<<setw(25)<<"num_threads: "<<num_threads<<endl;
     flog<<setw(25)<<"quanta_concentration: "<<quanta_concentration<<endl;
     flog<<setw(25)<<"impurity_concentration: "<<impurity_concentration<<endl;
     flog<<"########################################################"<<endl;

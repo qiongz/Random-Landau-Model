@@ -33,6 +33,17 @@ int main(int argc, char *argv[]) {
     dim_m =dim_n= off_head * 2 + 1;
     dim_wfs=n_phi*n_phi;
 
+    long worker_threads = num_threads;
+    if (worker_threads > n_mesh + 1)
+        worker_threads = n_mesh + 1;
+    long chern_workers = num_threads;
+    if (chern_workers > n_mesh)
+        chern_workers = n_mesh;
+    if (chern_workers < 1)
+        chern_workers = 1;
+    cerr << "pthread workers: diag=" << worker_threads << " chern=" << chern_workers
+         << " (requested -t " << num_threads << ", theta grid " << (n_mesh + 1) << ")\n";
+
     /*************************************  MEMORY ALLOCATION    ******************************************/
     // Coefficients for calculating hamiltonian--> disorder independent coefficients
     complex<dtype> *coeff_mn, *coeff_m_theta, *coeff_jm;
@@ -81,13 +92,13 @@ int main(int argc, char *argv[]) {
     theta_len = new int[num_threads];
     ctheta_len = new int[num_threads];
 
-    // divide works into num_threads of pieces
+    // divide work across effective worker counts (not raw num_threads)
     memset(theta_len, 0, num_threads*sizeof(int));
     memset(ctheta_len, 0, num_threads*sizeof(int));
     for(int i = 0; i < (n_mesh + 1); i++)
-        thds_theta[i% num_threads][theta_len[i%num_threads]++]=i;
+        thds_theta[i % worker_threads][theta_len[i % worker_threads]++]=i;
     for(int i = 0; i < n_mesh; i++)
-        thds_ctheta[i% num_threads][ctheta_len[i%num_threads]++]=i;
+        thds_ctheta[i % chern_workers][ctheta_len[i % chern_workers]++]=i;
     pthread_t *peer_thds = new pthread_t[num_threads];
     struct struct_solve params[num_threads]; 
     struct struct_Chern Chern_params[num_threads];
@@ -122,7 +133,7 @@ int main(int argc, char *argv[]) {
         // solve the (theta_1=0)-line of wave functions
         int theta_1=0;
 	// multi-threaded version
-        for(int id = 0; id < num_threads; id++) {
+        for(int id = 0; id < worker_threads; id++) {
 	    params[id].theta_1 = theta_1;
 	    params[id].n_phi = n_phi;
 	    params[id].n_mesh = n_mesh;
@@ -138,14 +149,10 @@ int main(int argc, char *argv[]) {
             params[id].coeff_m_theta = coeff_m_theta;
             pthread_create(&(peer_thds[id]), NULL, peer_solve_projected,  (void* )&params[id]);
         }
-        // join all the threads
-        for(int id = 0; id < num_threads; id++)
+        for(int id = 0; id < worker_threads; id++)
             pthread_join(peer_thds[id], NULL);
-	
-	//solve_projected(theta_1,n_mesh,n_phi,dim_m,dim_n,off_head,wave_functions,coeff_m_theta,coeff_jm,v_mn,energy_theta);
 
         _t2=std::chrono::high_resolution_clock::now();
-              
         diag_time=std::chrono::duration_cast<chrono::microseconds>(_t2-_t1).count()/1.0E6;
 	if(n==0)
 	cerr<<setw(40)<<"diagonalization time/k-point: "<<diag_time/(n_mesh+1)<<" s\n";
@@ -161,7 +168,7 @@ int main(int argc, char *argv[]) {
         for(int theta_1=1;theta_1<=n_mesh;theta_1++){
          // solve for another line
 	
-        for(int id = 0; id < num_threads; id++) {
+        for(int id = 0; id < worker_threads; id++) {
 	    params[id].theta_1 = theta_1;
 	    params[id].n_phi = n_phi;
 	    params[id].n_mesh = n_mesh;
@@ -177,8 +184,7 @@ int main(int argc, char *argv[]) {
             params[id].coeff_m_theta = coeff_m_theta;
             pthread_create(&(peer_thds[id]), NULL, peer_solve_projected,  (void* )&params[id]);
         }
-        // join all the threads
-        for(int id = 0; id < num_threads; id++)
+        for(int id = 0; id < worker_threads; id++)
             pthread_join(peer_thds[id], NULL);
 	
 	//solve_projected(theta_1,n_mesh,n_phi,dim_m,dim_n,off_head,wave_functions,coeff_m_theta,coeff_jm,v_mn,energy_theta);
@@ -192,7 +198,7 @@ int main(int argc, char *argv[]) {
 
         _t1=std::chrono::high_resolution_clock::now();
        
-        for(int id = 0; id < num_threads; id++) {
+        for(int id = 0; id < chern_workers; id++) {
 	    Chern_params[id].n_phi = n_phi;
 	    Chern_params[id].dim_vec = n_phi;
 	    Chern_params[id].n_mesh = n_mesh;
@@ -203,8 +209,7 @@ int main(int argc, char *argv[]) {
             Chern_params[id].chern_numbers_theta = chern_numbers_theta;
             pthread_create(&(peer_thds[id]), NULL, peer_cal_Chern,  (void*)&Chern_params[id]);
         }
-        // join all the threads
-        for(int id = 0; id < num_threads; id++)
+        for(int id = 0; id < chern_workers; id++)
             pthread_join(peer_thds[id], NULL);
         
         //cal_Chern(wave_functions, chern_numbers_theta,n_phi,n_phi,n_mesh,theta_1);

@@ -2,8 +2,7 @@
 #include<fstream>
 #include<iomanip>
 #include<complex>
-#include<cuda.h>
-#include<cuda_runtime.h>
+#include"../diag_wrappers/gpu_runtime.h"
 #include"init_rlm.h"
 #include"matrix_coefficients.h"
 #include"disorder_potential.h"
@@ -51,14 +50,14 @@ int main(int argc, char *argv[]) {
     // page-locked host memory, for data transfer
     // if use wfs write and read, reduces wfs in memory to 1*dim_wfs, otherwise 2*(n_mesh+1)*dim_wfs
     #ifdef wfsIO
-    cudaHostAlloc((void**)&wfs_full,dim_wfs*sizeof(*wfs_full),cudaHostAllocMapped);
+    gpuHostMalloc((void**)&wfs_full, dim_wfs * sizeof(*wfs_full), gpuHostMallocDefault);
     #else
     unsigned long wfs_size=(n_mesh+1)*2*dim_wfs*sizeof(complex<float>);
-    cudaHostAlloc((void**)&wfs_full,wfs_size,cudaHostAllocMapped);
+    gpuHostMalloc((void**)&wfs_full, wfs_size, gpuHostMallocDefault);
     #endif
-    cudaHostAlloc((void**)&coeff_m_theta,(n_mesh+1)*dim_m*sizeof(*coeff_m_theta),cudaHostAllocDefault);
-    cudaHostAlloc((void**)&coeff_jm,n_phi*dim_m*sizeof(*coeff_jm),cudaHostAllocDefault);
-    cudaHostAlloc((void**)&energy_theta,(n_mesh+1)*n_phi*sizeof(*energy_theta),cudaHostAllocDefault);
+    gpuHostMalloc((void**)&coeff_m_theta,(n_mesh+1)*dim_m*sizeof(*coeff_m_theta),gpuHostMallocDefault);
+    gpuHostMalloc((void**)&coeff_jm,n_phi*dim_m*sizeof(*coeff_jm),gpuHostMallocDefault);
+    gpuHostMalloc((void**)&energy_theta,(n_mesh+1)*n_phi*sizeof(*energy_theta),gpuHostMallocDefault);
 
     coeff_mn=new complex<float>[dim_m*dim_n];
     impurity_x = new float[impurity_num];
@@ -84,16 +83,16 @@ int main(int argc, char *argv[]) {
 
 
     // allocate device memory
-    cudaMalloc ((void**)&dev_wfs,n_phi*n_phi*sizeof(*dev_wfs));
-    cudaMalloc ((void**)&dev_coeff_m_theta_1,dim_m*sizeof(*dev_coeff_m_theta_1));
-    cudaMalloc ((void**)&dev_coeff_m_theta_2,dim_m*sizeof(*dev_coeff_m_theta_2));
-    cudaMalloc ((void**)&dev_coeff_jm,n_phi*dim_m*sizeof(*dev_coeff_jm));
-    cudaMalloc ((void**)&dev_coeff_mn,dim_n*dim_m*sizeof(*dev_coeff_mn));
-    cudaMalloc ((void**)&dev_Vmn,dim_m*dim_n*sizeof(*dev_Vmn));
-    cudaMalloc ((void**)&dev_energy,n_phi*sizeof(*dev_energy));
-    cudaMalloc ((void**)&dev_impurity_x,impurity_num*sizeof(*dev_impurity_x));
-    cudaMalloc ((void**)&dev_impurity_y,impurity_num*sizeof(*dev_impurity_y));
-    cudaMalloc ((void**)&dev_impurity_intensity,impurity_num*sizeof(*dev_impurity_intensity));
+    gpuMalloc((void**)&dev_wfs,n_phi*n_phi*sizeof(*dev_wfs));
+    gpuMalloc((void**)&dev_coeff_m_theta_1,dim_m*sizeof(*dev_coeff_m_theta_1));
+    gpuMalloc((void**)&dev_coeff_m_theta_2,dim_m*sizeof(*dev_coeff_m_theta_2));
+    gpuMalloc((void**)&dev_coeff_jm,n_phi*dim_m*sizeof(*dev_coeff_jm));
+    gpuMalloc((void**)&dev_coeff_mn,dim_n*dim_m*sizeof(*dev_coeff_mn));
+    gpuMalloc((void**)&dev_Vmn,dim_m*dim_n*sizeof(*dev_Vmn));
+    gpuMalloc((void**)&dev_energy,n_phi*sizeof(*dev_energy));
+    gpuMalloc((void**)&dev_impurity_x,impurity_num*sizeof(*dev_impurity_x));
+    gpuMalloc((void**)&dev_impurity_y,impurity_num*sizeof(*dev_impurity_y));
+    gpuMalloc((void**)&dev_impurity_intensity,impurity_num*sizeof(*dev_impurity_intensity));
 
 
     /************************************* PTHREAD PARAMETERS  **************************************************/
@@ -112,25 +111,25 @@ int main(int argc, char *argv[]) {
         thds_ctheta[i% num_threads][ctheta_len[i%num_threads]++]=i;
     pthread_t *peer_thds = new pthread_t[num_threads];
 
-    cudaEvent_t start,stop;
+    gpuEvent_t start,stop;
     float gpu_time,pot_time,coeff_time,chern_time,total_time;
-    cudaEventCreate(&start);
-    cudaEventCreate(&stop);
+    gpuEventCreate(&start);
+    gpuEventCreate(&stop);
 
     /***********************************  COEFFICIENTS INITIALIZATION  *******************************************/
-    cudaEventRecord(start,0);
+    gpuEventRecord(start,0);
     // initialize and store the disorder independent coefficients
     prepare_coeff(coeff_mn, coeff_m_theta, coeff_jm,n_phi,off_head,dim_m,dim_n,n_mesh, L1, L2);
     // copy coefficients from host to device
-    cudaMemcpy(dev_coeff_jm,coeff_jm,sizeof(*coeff_jm)*n_phi*dim_m,cudaMemcpyHostToDevice);
-    cudaMemcpy(dev_coeff_mn,coeff_mn,sizeof(*coeff_mn)*dim_n*dim_m,cudaMemcpyHostToDevice);
+    gpuMemcpy(dev_coeff_jm,coeff_jm,sizeof(*coeff_jm)*n_phi*dim_m,gpuMemcpyHostToDevice);
+    gpuMemcpy(dev_coeff_mn,coeff_mn,sizeof(*coeff_mn)*dim_n*dim_m,gpuMemcpyHostToDevice);
     // initialize data_file output
     ofstream fchern;
     fchern.open("energy_Chern_No.dat");
 
-    cudaEventRecord(stop,0);
-    cudaEventSynchronize(stop);
-    cudaEventElapsedTime(&coeff_time,start,stop);
+    gpuEventRecord(stop,0);
+    gpuEventSynchronize(stop);
+    gpuEventElapsedTime(&coeff_time,start,stop);
     coeff_time/=1000.0;
     cerr<<std::left<<setw(40)<<"coefficients initialization time: "<<coeff_time<<" s \n";
 
@@ -139,20 +138,20 @@ int main(int argc, char *argv[]) {
         memset(energy_levels, 0, n_phi*sizeof(float));
         memset(chern_numbers, 0, n_phi*sizeof(float));
 
-        cudaEventRecord(start,0);
+        gpuEventRecord(start,0);
         // initialize the disorder potential
         generate_disorder_potential(impurity_x,impurity_y,impurity_intensity,impurity_num,L1,L2,seed,n);
-        cudaMemcpy(dev_impurity_x,impurity_x,sizeof(*impurity_x)*impurity_num,cudaMemcpyHostToDevice);
-        cudaMemcpy(dev_impurity_y,impurity_y,sizeof(*impurity_y)*impurity_num,cudaMemcpyHostToDevice);
-        cudaMemcpy(dev_impurity_intensity,impurity_intensity,
-		sizeof(*impurity_intensity)*impurity_num,cudaMemcpyHostToDevice);
+        gpuMemcpy(dev_impurity_x,impurity_x,sizeof(*impurity_x)*impurity_num,gpuMemcpyHostToDevice);
+        gpuMemcpy(dev_impurity_y,impurity_y,sizeof(*impurity_y)*impurity_num,gpuMemcpyHostToDevice);
+        gpuMemcpy(dev_impurity_intensity,impurity_intensity,
+		sizeof(*impurity_intensity)*impurity_num,gpuMemcpyHostToDevice);
         // calculate the coefficient part from potential and transfer to the device
 	prepare_potential_coeff(dev_impurity_x, dev_impurity_y, dev_impurity_intensity,
-			(cuFloatComplex*)dev_Vmn,(cuFloatComplex*)dev_coeff_mn,dim_m,dim_n,off_head,impurity_num);
+			(GpuComplex*)dev_Vmn,(GpuComplex*)dev_coeff_mn,dim_m,dim_n,off_head,impurity_num);
 
-        cudaEventRecord(stop,0);
-        cudaEventSynchronize(stop);
-        cudaEventElapsedTime(&pot_time,start,stop);
+        gpuEventRecord(stop,0);
+        gpuEventSynchronize(stop);
+        gpuEventElapsedTime(&pot_time,start,stop);
 	pot_time/=1000.0;
 	if(n==0)
           cerr<<setw(40)<<"potential initialization time: "<<pot_time<<" s\n";
@@ -167,21 +166,21 @@ int main(int argc, char *argv[]) {
             wfs_index = ((theta_1%2) * (n_mesh + 1) + theta_2) * dim_wfs;
 	    #endif
             int en_index = theta_2 * n_phi;
-            cudaMemcpy(dev_coeff_m_theta_1,coeff_m_theta+theta_1*dim_n,dim_n*sizeof(*coeff_m_theta),cudaMemcpyHostToDevice);
-            cudaMemcpy(dev_coeff_m_theta_2,coeff_m_theta+theta_2*dim_n,dim_n*sizeof(*coeff_m_theta),cudaMemcpyHostToDevice);
-            set_hamil_matrix((cuFloatComplex*)dev_coeff_m_theta_1,(cuFloatComplex*)dev_coeff_m_theta_2,
-                             (cuFloatComplex*) dev_coeff_jm,(cuFloatComplex*)dev_Vmn, (cuFloatComplex*)dev_wfs,
+            gpuMemcpy(dev_coeff_m_theta_1,coeff_m_theta+theta_1*dim_n,dim_n*sizeof(*coeff_m_theta),gpuMemcpyHostToDevice);
+            gpuMemcpy(dev_coeff_m_theta_2,coeff_m_theta+theta_2*dim_n,dim_n*sizeof(*coeff_m_theta),gpuMemcpyHostToDevice);
+            set_hamil_matrix((GpuComplex*)dev_coeff_m_theta_1,(GpuComplex*)dev_coeff_m_theta_2,
+                             (GpuComplex*) dev_coeff_jm,(GpuComplex*)dev_Vmn, (GpuComplex*)dev_wfs,
                              n_phi,dim_n,off_head);
             #if defined magma
             magma_diag_hamil((magmaFloatComplex*)dev_wfs,energy_theta+en_index,n_phi);
-            cudaMemcpy(wfs_full+wfs_index, dev_wfs, sizeof(*(dev_wfs))*dim_wfs, cudaMemcpyDeviceToHost);
+            gpuMemcpy(wfs_full+wfs_index, dev_wfs, sizeof(*(dev_wfs))*dim_wfs, gpuMemcpyDeviceToHost);
             #elif defined mkl
-            cudaMemcpy(wfs_full+wfs_index, dev_wfs, sizeof(*(dev_wfs))*dim_wfs, cudaMemcpyDeviceToHost);
+            gpuMemcpy(wfs_full+wfs_index, dev_wfs, sizeof(*(dev_wfs))*dim_wfs, gpuMemcpyDeviceToHost);
             mkl_heevd(wfs_full+wfs_index,energy_theta+en_index,n_phi);
             #elif defined cusolver
-            cusolver_diag_hamil((cuFloatComplex*)dev_wfs,dev_energy,n_phi);
-            cudaMemcpy(wfs_full+wfs_index, dev_wfs, sizeof(*(dev_wfs))*dim_wfs, cudaMemcpyDeviceToHost);
-            cudaMemcpy(energy_theta+en_index, dev_energy, sizeof(*(dev_energy))*n_phi, cudaMemcpyDeviceToHost);
+            cusolver_diag_hamil((GpuComplex*)dev_wfs,dev_energy,n_phi);
+            gpuMemcpy(wfs_full+wfs_index, dev_wfs, sizeof(*(dev_wfs))*dim_wfs, gpuMemcpyDeviceToHost);
+            gpuMemcpy(energy_theta+en_index, dev_energy, sizeof(*(dev_energy))*n_phi, gpuMemcpyDeviceToHost);
             #endif
             #if defined wfsIO
 	    write_wfs(theta_1%2,theta_2,wfs_full,dim_wfs);
@@ -197,7 +196,7 @@ int main(int argc, char *argv[]) {
         // solve theta_1-line of wfs from 1 to n_mesh, chern number calculations are also performed
         for(int theta_1=1; theta_1<=n_mesh; theta_1++) {
             if(theta_1==1)
-              cudaEventRecord(start,0);
+              gpuEventRecord(start,0);
             // solve for another line
             for(int theta_2=0; theta_2<=n_mesh; theta_2++) {
 		int wfs_index; 
@@ -207,21 +206,21 @@ int main(int argc, char *argv[]) {
                 wfs_index = ((theta_1%2) * (n_mesh + 1) + theta_2) * dim_wfs;
                 #endif
                 int en_index = theta_2 * n_phi;
-                cudaMemcpy(dev_coeff_m_theta_1,coeff_m_theta+theta_1*dim_n,dim_n*sizeof(*coeff_m_theta),cudaMemcpyHostToDevice);
-                cudaMemcpy(dev_coeff_m_theta_2,coeff_m_theta+theta_2*dim_n,dim_n*sizeof(*coeff_m_theta),cudaMemcpyHostToDevice);
-                set_hamil_matrix((cuFloatComplex*)dev_coeff_m_theta_1,(cuFloatComplex*)dev_coeff_m_theta_2,
-                                 (cuFloatComplex*) dev_coeff_jm,(cuFloatComplex*)dev_Vmn, (cuFloatComplex*)dev_wfs,
+                gpuMemcpy(dev_coeff_m_theta_1,coeff_m_theta+theta_1*dim_n,dim_n*sizeof(*coeff_m_theta),gpuMemcpyHostToDevice);
+                gpuMemcpy(dev_coeff_m_theta_2,coeff_m_theta+theta_2*dim_n,dim_n*sizeof(*coeff_m_theta),gpuMemcpyHostToDevice);
+                set_hamil_matrix((GpuComplex*)dev_coeff_m_theta_1,(GpuComplex*)dev_coeff_m_theta_2,
+                                 (GpuComplex*) dev_coeff_jm,(GpuComplex*)dev_Vmn, (GpuComplex*)dev_wfs,
                                  n_phi,dim_n,off_head);
                 #if defined magma
                 magma_diag_hamil((magmaFloatComplex*)dev_wfs,energy_theta+en_index,n_phi);
-                cudaMemcpy(wfs_full+wfs_index, dev_wfs, sizeof(*(dev_wfs))*dim_wfs, cudaMemcpyDeviceToHost);
+                gpuMemcpy(wfs_full+wfs_index, dev_wfs, sizeof(*(dev_wfs))*dim_wfs, gpuMemcpyDeviceToHost);
                 #elif defined mkl
-                cudaMemcpy(wfs_full+wfs_index, dev_wfs, sizeof(*(dev_wfs))*dim_wfs, cudaMemcpyDeviceToHost);
+                gpuMemcpy(wfs_full+wfs_index, dev_wfs, sizeof(*(dev_wfs))*dim_wfs, gpuMemcpyDeviceToHost);
                 mkl_heevd(wfs_full+wfs_index,energy_theta+en_index,n_phi);
                 #elif defined cusolver
-                cusolver_diag_hamil((cuFloatComplex*)dev_wfs,dev_energy,n_phi);
-                cudaMemcpy(wfs_full+wfs_index, dev_wfs, sizeof(*(dev_wfs))*dim_wfs, cudaMemcpyDeviceToHost);
-                cudaMemcpy(energy_theta+en_index, dev_energy, sizeof(*(dev_energy))*n_phi, cudaMemcpyDeviceToHost);
+                cusolver_diag_hamil((GpuComplex*)dev_wfs,dev_energy,n_phi);
+                gpuMemcpy(wfs_full+wfs_index, dev_wfs, sizeof(*(dev_wfs))*dim_wfs, gpuMemcpyDeviceToHost);
+                gpuMemcpy(energy_theta+en_index, dev_energy, sizeof(*(dev_energy))*n_phi, gpuMemcpyDeviceToHost);
                 #endif
                 #if defined wfsIO
 	        write_wfs(theta_1%2,theta_2,wfs_full,dim_wfs);
@@ -233,12 +232,12 @@ int main(int argc, char *argv[]) {
                     energy_levels[i] += energy_theta[j* n_phi +i];
             }
 	    if(theta_1==1 && n==0){
-              cudaEventRecord(stop,0);
-              cudaEventSynchronize(stop);
-              cudaEventElapsedTime(&gpu_time,start,stop);
+              gpuEventRecord(stop,0);
+              gpuEventSynchronize(stop);
+              gpuEventElapsedTime(&gpu_time,start,stop);
 	      gpu_time/=1000.0;
               cerr<<setw(40)<<"diagonalization time/k-point: "<<gpu_time/(n_mesh+1)<<" s\n";
-              cudaEventRecord(start,0);
+              gpuEventRecord(start,0);
 	    }
             #if defined wfsIO
             cal_Chern_wfs_IO(chern_numbers_theta,n_phi,n_phi, n_mesh, theta_1);
@@ -265,9 +264,9 @@ int main(int argc, char *argv[]) {
             cal_Chern(wfs_full,chern_numbers_theta,n_phi,n_phi, n_mesh, theta_1);
             #endif
 	    if(theta_1==1 && n==0){
-              cudaEventRecord(stop,0);
-              cudaEventSynchronize(stop);
-              cudaEventElapsedTime(&chern_time,start,stop);
+              gpuEventRecord(stop,0);
+              gpuEventSynchronize(stop);
+              gpuEventElapsedTime(&chern_time,start,stop);
 	      chern_time/=1000.0;
 	      total_time=coeff_time+(pot_time+(chern_time*n_mesh+gpu_time*(n_mesh+1)))*n_sample;
               cerr<<setw(40)<<"Chern No. calculation time/k-point: "<<chern_time/(n_mesh+1)<<" s\n";
@@ -300,16 +299,16 @@ int main(int argc, char *argv[]) {
     }
 
     /***********************************  CLEAR DEVICE MEMORY  ***************************************/
-    cudaFree(dev_wfs);
-    cudaFree(dev_coeff_jm);
-    cudaFree(dev_coeff_m_theta_1);
-    cudaFree(dev_coeff_m_theta_2);
-    cudaFree(dev_coeff_mn);
-    cudaFree(dev_Vmn);
-    cudaFree(dev_energy);
-    cudaFree(dev_impurity_x);
-    cudaFree(dev_impurity_y);
-    cudaFree(dev_impurity_intensity);
+    gpuFree(dev_wfs);
+    gpuFree(dev_coeff_jm);
+    gpuFree(dev_coeff_m_theta_1);
+    gpuFree(dev_coeff_m_theta_2);
+    gpuFree(dev_coeff_mn);
+    gpuFree(dev_Vmn);
+    gpuFree(dev_energy);
+    gpuFree(dev_impurity_x);
+    gpuFree(dev_impurity_y);
+    gpuFree(dev_impurity_intensity);
 
     /***********************************  CLEAR HOST MEMORY  ****************************************/
     delete[] chern_numbers;
@@ -319,10 +318,10 @@ int main(int argc, char *argv[]) {
     delete[] impurity_x;
     delete[] coeff_mn;
 
-    cudaFreeHost(wfs_full);
-    cudaFreeHost(coeff_jm);
-    cudaFreeHost(coeff_m_theta);
-    cudaFreeHost(energy_theta);
+    gpuFreeHost(wfs_full);
+    gpuFreeHost(coeff_jm);
+    gpuFreeHost(coeff_m_theta);
+    gpuFreeHost(energy_theta);
 
     fchern.close();
 

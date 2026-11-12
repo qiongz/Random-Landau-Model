@@ -8,7 +8,9 @@ void prepare_coeff(complex<dtype> *coeff_mn, complex<dtype> *coeff_m_theta, comp
     // divided by n_phi=L1*L2
     for(m = 0; m < dim_m; m++)
         for(n = 0; n < dim_n; n++)
-            coeff_mn[m * dim_n + n] = complex<dtype>(cos(M_PI * (m - off_head) * (n - off_head) / n_phi), -sin(M_PI * (m - off_head) * (n - off_head) / n_phi)) * expf(-M_PI * ((m - off_head) * (m - off_head) * L2 / L1 + (n - off_head) * (n - off_head) * L1 / L2) / 2.0 / n_phi) *(1.0f/ n_phi);
+            coeff_mn[m * dim_n + n] = complex<dtype>(cos(M_PI * (m - off_head) * (n - off_head) / n_phi), -sin(M_PI * (m - off_head) * (n - off_head) / n_phi))
+                * static_cast<dtype>(exp(-M_PI * ((m - off_head) * (m - off_head) * L2 / L1 + (n - off_head) * (n - off_head) * L1 / L2) / 2.0 / n_phi))
+                * (static_cast<dtype>(1) / n_phi);
 
     // coeff_m_theta =  exp(i\pi * m /N_phi)
     for(theta = 0; theta <= n_mesh; theta++) {

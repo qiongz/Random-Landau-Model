@@ -1,14 +1,15 @@
 CC            = g++
-ICC           = icpc
+ICC           = $(shell command -v icpc 2>/dev/null || command -v icpx 2>/dev/null || echo g++)
 LD            = g++
 NVCC          = nvcc
 CFLAGS        = -Wall -std=c++11
-ICC_LDFLAGS   = -Wall -qopenmp 
+ICC_LDFLAGS   = -Wall $(if $(filter g++,$(ICC)),-fopenmp,-qopenmp)
 FPIC          = -fPIC
 
 MAGMADIR     = /usr/local/magma
 CUDADIR      = /usr/local/cuda
 OPENBLASDIR  = /usr/local/openblas
+MKLROOT      ?= /opt/intel/oneapi/mkl/latest
 
 MKL_CFLAGS       := -m64 -I$(MKLROOT)/include  
 
@@ -18,7 +19,7 @@ MAGMA_INC        := -DADD_ \
 	            -I$(MAGMADIR)/include \
 		    -I$(CUDADIR)/include
 
-SEQ_MKL_LIBS     := -L${MKLROOT}/lib/intel64 -lmkl_intel_lp64  \
+SEQ_MKL_LIBS     := -Wl,-rpath,$(MKLROOT)/lib/intel64 -L$(MKLROOT)/lib/intel64 -lmkl_intel_lp64  \
        	  	     -lmkl_sequential -lmkl_core -lpthread -lm -ldl 
 
 PARAL_MKL_LIBS   := -L${MKLROOT}/lib/intel64 -lmkl_intel_lp64  \
@@ -47,10 +48,10 @@ NVCC_LDFLAGS     := -gencode arch=compute_30,code=compute_30 \
 # ----------------------------------------
 default:
 	@echo "Available make targets are:"
-	@echo "  make cpu gpu       # compiles main_gpu.cu main_cpu.cpp"
-	@echo "  make gpu           # compiles main_gpu.cu"
-	@echo "  make cpu           # compiles main_cpu.cpp"
-	@echo "  make clean         # deletes executables and object files"
+	@echo "  make cpu             # rlm/hlm CPU builds"
+	@echo "  make gpu             # CUDA GPU builds (needs nvcc)"
+	@echo "  make rlm_gpu_rocm    # HIP assemble + MKL CPU diag (ROCm)"
+	@echo "  make clean           # deletes object files"
 
 all:cpu gpu clean
 
@@ -68,6 +69,27 @@ clean:
 
 remove:
 	rm -f  rlm_gpu_* rlm_cpu* hlm_cpu_* 
+
+# ------ ROCm: HIP matrix assembly + MKL CPU diagonalization (scheme B) ------
+HIPCC         ?= hipcc
+ROCM_PATH     ?= /opt/rocm
+HIP_ARCH      ?= gfx1201
+HIPFLAGS      = -DUSE_ROCM -Dmkl -std=c++11 -O3 -I$(ROCM_PATH)/include
+HIPFLAGS     += --offload-arch=$(HIP_ARCH)
+HIPLDFLAGS    = -L$(ROCM_PATH)/lib -lamdhip64 $(SEQ_MKL_LIBS)
+
+main_rlm_gpu_rocm.o: rlm/main_rlm_gpu.cu
+	$(HIPCC) $(HIPFLAGS) $(MKL_CFLAGS) -c -o $@ $<
+
+hamiltonian_rlm_gpu_hip.o: rlm/hamiltonian_rlm_gpu.cu rlm/hamiltonian_rlm_gpu.h diag_wrappers/gpu_runtime.h
+	$(HIPCC) $(HIPFLAGS) -c -o $@ $<
+
+potential_coeff_hip.o: rlm/potential_coeff.cu rlm/potential_coeff.h diag_wrappers/gpu_runtime.h
+	$(HIPCC) $(HIPFLAGS) -c -o $@ $<
+
+rlm_gpu_rocm: main_rlm_gpu_rocm.o hamiltonian_rlm_gpu_hip.o potential_coeff_hip.o \
+              init_rlm.o matrix_coefficients.o disorder_potential.o chern.o mkl_diag.o wfs_file.o
+	$(HIPCC) $(HIPFLAGS) $^ $(HIPLDFLAGS) -o $@
 
 # ------ compile gpu version of random Landau model ------
 # ---- object files -----
